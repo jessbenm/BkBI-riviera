@@ -307,8 +307,7 @@ table.gestion .del-btn{background:none;border:none;color:#B34141;cursor:pointer;
       </div>
 
       <div class="io-row">
-        <button class="btn gold" id="btnRecover">Récupérer mes anciens prix (sur cet appareil)</button>
-        <button class="btn ghost" id="btnExport">Exporter la sauvegarde (JSON)</button>
+          <button class="btn ghost" id="btnExport">Exporter la sauvegarde (JSON)</button>
         <button class="btn ghost" id="btnImport">Importer une sauvegarde</button>
         <input type="file" id="importFile" accept=".json" style="display:none;">
       </div>
@@ -339,9 +338,6 @@ const SHELL = {
 const BASE_FLOORS = [1,2,3,4,5,6,7,8,9,10,11];
 let ALL_FLOORS = [...BASE_FLOORS];
 
-const LS_KEY = 'bkbi_units_v1';
-const LS_CUSTOM = 'bkbi_custom_v1';
-
 function sideOf(letter){ return (letter==='A'||letter==='B') ? 'Sud' : 'Nord'; }
 function apportRate(floor){ return floor <= 4 ? 0.45 : 0.40; }
 function fmt(n){ if(n===undefined||n===null||n==='' || isNaN(n)) return '—'; return Number(n).toLocaleString('fr-FR').replace(/,/g,' '); }
@@ -358,12 +354,6 @@ const BKBI_ROW = 'data';
 const SUPABASE_ENABLED = SUPABASE_URL && SUPABASE_KEY;
 
 let supabaseClient = null;
-
-function loadStoreLocal(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }catch(e){ return {}; } }
-function saveStoreLocal(store){ localStorage.setItem(LS_KEY, JSON.stringify(store)); }
-function loadCustomLocal(){ try{ return JSON.parse(localStorage.getItem(LS_CUSTOM)) || []; }catch(e){ return []; } }
-function saveCustomLocal(list){ localStorage.setItem(LS_CUSTOM, JSON.stringify(list)); }
-
 let store = {};
 let customUnits = []; // [{floor,letter,typo}]
 
@@ -393,8 +383,6 @@ function onDataChange(){
 }
 
 function persist(){
-  saveStoreLocal(store);
-  saveCustomLocal(customUnits);
   if(SUPABASE_ENABLED && supabaseClient){
     if(!initialSyncDone){
       console.warn('Écriture ignorée : synchronisation initiale pas encore terminée.');
@@ -409,11 +397,11 @@ function persist(){
         setSyncStatus('🟢 Synchronisé avec Supabase', '#7FD7B0');
       }).catch(err=>{
         console.error(err);
-        setSyncStatus('🔴 Non synchronisé — copie gardée sur cet appareil', '#E39A9A');
-        toast('Non synchronisé (sauvegardé localement en attendant)');
+        setSyncStatus('🔴 Erreur Supabase — données non sauvegardées', '#E39A9A');
+        toast('Erreur de synchronisation avec Supabase');
       });
   } else {
-    setSyncStatus('⚪ Mode local (non partagé)', '#B7BEC8');
+    setSyncStatus('🔴 Supabase non configuré', '#E39A9A');
   }
 }
 
@@ -437,9 +425,9 @@ async function initData(){
 
     if(error){
       console.error(error);
-      setSyncStatus('🔴 Erreur Supabase — copie locale affichée', '#E39A9A');
-      store = loadStoreLocal();
-      customUnits = loadCustomLocal();
+      setSyncStatus('🔴 Erreur Supabase — données non chargées', '#E39A9A');
+      store = {};
+      customUnits = [];
       onDataChange();
       return;
     }
@@ -447,19 +435,17 @@ async function initData(){
     if(data && data.payload){
       store = data.payload.store || {};
       customUnits = data.payload.customUnits || [];
-      saveStoreLocal(store);
-      saveCustomLocal(customUnits);
     } else {
-      store = loadStoreLocal();
-      customUnits = loadCustomLocal();
+      store = {};
+      customUnits = [];
     }
     initialSyncDone = true;
     setSyncStatus('🟢 Synchronisé avec Supabase', '#7FD7B0');
     onDataChange();
   } else {
-    store = loadStoreLocal();
-    customUnits = loadCustomLocal();
-    setSyncStatus('⚪ Mode local (non partagé — renseignez Supabase)', '#B7BEC8');
+    store = {};
+    customUnits = [];
+    setSyncStatus('🔴 Supabase non configuré', '#E39A9A');
     onDataChange();
   }
 }
@@ -768,31 +754,6 @@ document.getElementById('btnAddUnit').addEventListener('click', ()=>{
   renderGestion();
   applyFilters();
   toast('Appartement ajouté');
-});
-
-/* ---------------- Récupération des anciennes données locales ---------------- */
-document.getElementById('btnRecover').addEventListener('click', ()=>{
-  const localStore = loadStoreLocal();
-  const localCustom = loadCustomLocal();
-  const nbLocal = Object.keys(localStore).length;
-  if(nbLocal===0 && localCustom.length===0){
-    toast('Aucune ancienne donnée trouvée sur cet appareil');
-    return;
-  }
-  Object.keys(localStore).forEach(id=>{
-    store[id] = Object.assign({}, store[id]||{}, localStore[id]);
-  });
-  localCustom.forEach(cu=>{
-    if(!customUnits.some(x=>x.floor===cu.floor && x.letter===cu.letter && x.typo===cu.typo)){
-      customUnits.push(cu);
-    }
-  });
-  persist();
-  recomputeAllFloors();
-  populateFloorFilter();
-  renderGestion();
-  applyFilters();
-  toast(nbLocal + ' appartement(s) récupéré(s) et synchronisé(s) !');
 });
 
 /* ---------------- Export / Import ---------------- */

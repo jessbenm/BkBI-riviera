@@ -349,11 +349,11 @@ function fmt(n){ if(n===undefined||n===null||n==='' || isNaN(n)) return '—'; r
 /* ---------------------------------------------------------
    SYNCHRONISATION SUPABASE
    Projet Supabase fourni par l'utilisateur.
-   Créez une table `bkbi_sync` avec une ligne `id='data'` et une colonne `payload` JSONB.
+   Créez une table `BKBI-data` avec une ligne `id='data'` et une colonne `payload` JSONB.
 --------------------------------------------------------- */
 const SUPABASE_URL = 'https://ebxxxigzpyabdexwnoqp.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_6c9qGdR9QvOn75y6NmzNiA_-2w5dUcY';
-const BKBI_TABLE = 'bkbi_sync';
+const BKBI_TABLE = 'BKBI-data';
 const BKBI_ROW = 'data';
 const SUPABASE_ENABLED = SUPABASE_URL && SUPABASE_KEY;
 

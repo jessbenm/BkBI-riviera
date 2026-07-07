@@ -718,6 +718,13 @@ function renderGestion(){
       applyFilters();
     });
   });
+  container.querySelectorAll('[data-client]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const id = e.target.dataset.client;
+      const unit = buildUnits().find(u=>u.id===id);
+      if(unit) openClientPanel(unit);
+    });
+  });
   container.querySelectorAll('[data-del]').forEach(btn=>{
     btn.addEventListener('click', e=>{
       const id = e.target.dataset.del;

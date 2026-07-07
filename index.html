@@ -6,7 +6,8 @@
 <title>BKBI — Répertoire des appartements</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
 :root{
   --bg: #E9ECF1;
@@ -109,7 +110,7 @@ main{flex:1;min-width:0;padding:24px 28px 60px;}
   background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
   box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;
 }
-.card.vendu{opacity:.55;}
+.card.vendu{background:#E9F4FF;border-color:#B8DDF1;}
 .card-head{
   display:flex;justify-content:space-between;align-items:center;padding:12px 16px;
   background:var(--panel-2);border-bottom:1px solid var(--line);
@@ -131,6 +132,9 @@ main{flex:1;min-width:0;padding:24px 28px 60px;}
 .status-pill{align-self:flex-start;font-size:10px;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
 .status-pill.disponible{background:var(--dispo-soft);color:var(--dispo);}
 .status-pill.vendu{background:var(--vendu-soft);color:var(--vendu);}
+.card.vendu{background:#E8F5E9;border-color:#B7DBC4;}
+.client-panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:18px;box-shadow:var(--shadow);}
+.client-panel .field label{margin-top:0;}
 .card-foot{padding:10px 16px;border-top:1px solid var(--line);display:flex;gap:8px;}
 .empty-state{padding:60px 20px;text-align:center;color:var(--ink-soft);}
 .empty-state h3{color:var(--ink);}
@@ -249,9 +253,34 @@ table.gestion .del-btn{background:none;border:none;color:#B34141;cursor:pointer;
         </div>
       </div>
 
-      <div class="results-summary">
+        <div class="results-summary">
         <span id="resultsCount">— résultats</span>
         <span id="resultsHint"></span>
+      </div>
+      <div class="client-panel" id="clientPanel" style="display:none;">
+        <h3 style="margin:0 0 12px;font-size:15px;">Informations client</h3>
+        <div class="filters-grid">
+          <div class="field"><label>Nom</label><input type="text" id="clientName"></div>
+          <div class="field"><label>Prénom</label><input type="text" id="clientFirstName"></div>
+          <div class="field"><label>Téléphone</label><input type="text" id="clientPhone"></div>
+          <div class="field"><label>Budget (DA)</label><input type="number" id="clientBudget"></div>
+          <div class="field"><label>Typologie</label><input type="text" id="clientTypo"></div>
+          <div class="field"><label>Surface (m²)</label><input type="number" id="clientSurface"></div>
+          <div class="field"><label>Étage</label><input type="text" id="clientFloor" disabled></div>
+          <div class="field"><label>Appartement</label><input type="text" id="clientUnit" disabled></div>
+          <div class="field"><label>Apport initial (DA)</label><input type="number" id="clientApport"></div>
+          <div class="field"><label>Reste à payer (DA)</label><input type="number" id="clientReste"></div>
+          <div class="field"><label>Crédit bancaire</label>
+            <select id="clientCredit">
+              <option value="non">Non</option>
+              <option value="oui">Oui</option>
+            </select>
+          </div>
+        </div>
+        <div class="filters-actions" style="margin-top:10px;">
+          <button class="btn gold" id="btnSaveClient">Enregistrer et vendre</button>
+          <button class="btn ghost" id="btnCloseClient">Fermer</button>
+        </div>
       </div>
       <div class="results-grid" id="resultsGrid"></div>
     </section>
@@ -298,9 +327,9 @@ table.gestion .del-btn{background:none;border:none;color:#B34141;cursor:pointer;
 const SHELL = {
   1: [['A','F4'],['B','F3'],['C','F4'],['D','F4']],
   2: [['A','F4'],['B','F3'],['C','F4'],['D','F4']],
-  3: [['B','F3'],['C','F4'],['D','F4']],
-  4: [['B','F3'],['C','F4'],['D','F4']],
-  5: [['B','F3'],['C','F4'],['D','F4']],
+  3: [['A','F4'],['B','F3'],['C','F4'],['D','F4']],
+  4: [['A','F4'],['B','F3'],['C','F4'],['D','F4']],
+  5: [['A','F4'],['B','F3'],['C','F4'],['D','F4']],
   6: [['A','F4'],['B','F3'],['C','F3'],['D','F3']],
   7: [['A','F4'],['B','F3'],['C','F3'],['D','F3']],
   8: [['A','F4'],['B','F3'],['C','F3'],['D','F3']],
@@ -319,19 +348,25 @@ function apportRate(floor){ return floor <= 4 ? 0.45 : 0.40; }
 function fmt(n){ if(n===undefined||n===null||n==='' || isNaN(n)) return '—'; return Number(n).toLocaleString('fr-FR').replace(/,/g,' '); }
 
 /* ---------------------------------------------------------
-   PARTAGE ENTRE PLUSIEURS PERSONNES (Supabase)
+   PARTAGE ENTRE PLUSIEURS PERSONNES (Firebase Firestore)
 --------------------------------------------------------- */
-const SUPABASE_URL = "https://ebxxxigzpyabdexwnoqp.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_6c9qGdR9QvOn75y6NmzNiA_-2w5dUcY";
-const TABLE = "BKBI-data"; // nom exact de la table créée dans Supabase
+const firebaseConfig = {
+  apiKey: "AIzaSyCXM6Je4lKUWeITsReuwWFpdLpv5jYWePg",
+  authDomain: "bkbi-336be.firebaseapp.com",
+  projectId: "bkbi-336be",
+  storageBucket: "bkbi-336be.firebasestorage.app",
+  messagingSenderId: "635527203653",
+  appId: "1:635527203653:web:6bb05588be8c0ae45d0c2c"
+};
+const FIREBASE_ENABLED = firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith('COLLEZ');
 
-const SUPABASE_ENABLED = SUPABASE_URL && SUPABASE_ANON_KEY;
-
-let supabaseClient = null;
-if (SUPABASE_ENABLED) {
+let db = null, docRef = null;
+if (FIREBASE_ENABLED) {
   try{
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  }catch(e){ console.error('Supabase init error', e); }
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    docRef = db.collection('bkbi').doc('data');
+  }catch(e){ console.error('Firebase init error', e); }
 }
 
 function loadStoreLocal(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }catch(e){ return {}; } }
@@ -343,11 +378,12 @@ let store = {};
 let customUnits = []; // [{floor,letter,typo}]
 
 /* ---------------------------------------------------------
-   Ce verrou empêche persist() d'envoyer quoi que ce soit vers
-   Supabase tant que la première lecture des données existantes
-   n'a pas été faite. Sans ça, au chargement de la page,
-   store={} pourrait être envoyé avant d'avoir récupéré les
-   vraies données, ce qui écraserait tout.
+   CORRECTIF : ce verrou empêche persist() d'envoyer quoi que
+   ce soit vers Firestore tant que la première lecture des
+   données existantes (onSnapshot) n'a pas été reçue.
+   Sans ça, au chargement de la page, store={} pouvait être
+   envoyé vers Firestore avant d'avoir récupéré les vraies
+   données, ce qui écrasait tout.
 --------------------------------------------------------- */
 let initialSyncDone = false;
 
@@ -369,72 +405,48 @@ function onDataChange(){
   if(document.getElementById('tab-gestion').style.display !== 'none') renderGestion();
 }
 
-async function persist(){
+function persist(){
   saveStoreLocal(store);
   saveCustomLocal(customUnits);
-  if(SUPABASE_ENABLED && supabaseClient){
+  if(FIREBASE_ENABLED && docRef){
     if(!initialSyncDone){
+      // Sécurité : on ne pousse rien tant qu'on n'a pas reçu
+      // les données existantes de Firestore au moins une fois.
       console.warn('Écriture ignorée : synchronisation initiale pas encore terminée.');
       return;
     }
     setSyncStatus('Synchronisation…', '#B7BEC8');
-    const { error } = await supabaseClient.from(TABLE).upsert({ id:'data', content:{store, customUnits} });
-    if(error){
-      console.error(error);
+    docRef.set({ store, customUnits }).then(()=>{
+      setSyncStatus('🟢 Synchronisé avec l\'équipe', '#7FD7B0');
+    }).catch(err=>{
+      console.error(err);
       setSyncStatus('🔴 Non synchronisé — copie gardée sur cet appareil', '#E39A9A');
       toast('Non synchronisé (sauvegardé localement en attendant)');
-    } else {
-      setSyncStatus('🟢 Synchronisé avec l\'équipe', '#7FD7B0');
-    }
+    });
   } else {
     setSyncStatus('⚪ Mode local (non partagé)', '#B7BEC8');
   }
 }
 
-function subscribeRealtime(){
-  if(!SUPABASE_ENABLED || !supabaseClient) return;
-  supabaseClient
-    .channel('bkbi-changes')
-    .on('postgres_changes', { event:'*', schema:'public', table: TABLE, filter:'id=eq.data' }, payload=>{
-      const newContent = payload.new && payload.new.content;
-      if(newContent){
-        store = newContent.store || {};
-        customUnits = newContent.customUnits || [];
-        saveStoreLocal(store);
-        saveCustomLocal(customUnits);
-        onDataChange();
-      }
-    })
-    .subscribe();
-}
-
-async function initData(){
-  if(SUPABASE_ENABLED && supabaseClient){
+function initData(){
+  if(FIREBASE_ENABLED && docRef){
     setSyncStatus('Connexion…', '#B7BEC8');
-    try{
-      const { data, error } = await supabaseClient.from(TABLE).select('content').eq('id','data').maybeSingle();
-      if(error) throw error;
-      if(data && data.content){
-        store = data.content.store || {};
-        customUnits = data.content.customUnits || [];
-      } else {
-        // Aucune ligne encore en base : on part des données locales (si présentes)
-        store = loadStoreLocal();
-        customUnits = loadCustomLocal();
-      }
+    docRef.onSnapshot(snap=>{
+      const d = snap.data() || {};
+      store = d.store || {};
+      customUnits = d.customUnits || [];
       saveStoreLocal(store);
       saveCustomLocal(customUnits);
       initialSyncDone = true; // à partir d'ici, persist() est autorisé
       setSyncStatus('🟢 Synchronisé avec l\'équipe', '#7FD7B0');
       onDataChange();
-      subscribeRealtime();
-    }catch(err){
+    }, err=>{
       console.error(err);
       store = loadStoreLocal();
       customUnits = loadCustomLocal();
       setSyncStatus('🔴 Hors ligne — copie locale affichée', '#E39A9A');
       onDataChange();
-    }
+    });
   } else {
     store = loadStoreLocal();
     customUnits = loadCustomLocal();
@@ -586,15 +598,67 @@ function renderResults(list){
         <span class="status-pill ${u.status}">${u.status==='vendu' ? 'Vendu' : 'Disponible'}</span>
       </div>
       <div class="card-foot">
+        <button class="btn ghost small" data-client="${u.id}">${u.status==='vendu' ? 'Client' : 'Vendre'}</button>
         <button class="btn ghost small" data-copy="${u.id}">Copier la fiche</button>
       </div>
     `;
+    card.querySelector('[data-client]').addEventListener('click', ()=> openClientPanel(u));
     card.querySelector('[data-copy]').addEventListener('click', ()=>{
       const text = `BKBI — Étage ${u.floor}, Appartement ${u.letter} (${u.typo}), côté ${u.side}\nSurface : ${u.surface||'—'} m²\nPrix : ${price?fmt(price)+' DA':'—'}\nApport initial (${Math.round(rate*100)}%) : ${fmt(apport)} DA\nReste à payer : ${fmt(reste)} DA\nStatut : ${u.status==='vendu'?'Vendu':'Disponible'}`;
       navigator.clipboard.writeText(text).then(()=>toast('Fiche copiée dans le presse-papiers'));
     });
     grid.appendChild(card);
   });
+}
+
+function openClientPanel(unit){
+  const panel = document.getElementById('clientPanel');
+  const rec = store[unit.id] || {};
+  const client = rec.client || {};
+  document.getElementById('clientName').value = client.name || '';
+  document.getElementById('clientFirstName').value = client.firstName || '';
+  document.getElementById('clientPhone').value = client.phone || '';
+  document.getElementById('clientBudget').value = client.budget || '';
+  document.getElementById('clientTypo').value = client.typo || unit.typo;
+  document.getElementById('clientSurface').value = client.surface || unit.surface || '';
+  document.getElementById('clientFloor').value = unit.floor;
+  document.getElementById('clientUnit').value = unit.letter;
+  document.getElementById('clientApport').value = client.apport || Math.round((Number(unit.price)||0) * apportRate(unit.floor));
+  document.getElementById('clientReste').value = client.reste || (Number(unit.price)||0) - (client.apport || Math.round((Number(unit.price)||0) * apportRate(unit.floor)));
+  document.getElementById('clientCredit').value = client.credit || 'non';
+  panel.dataset.unitId = unit.id;
+  panel.style.display = 'block';
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function closeClientPanel(){
+  const panel = document.getElementById('clientPanel');
+  panel.style.display = 'none';
+  delete panel.dataset.unitId;
+}
+
+function saveClientPanel(){
+  const panel = document.getElementById('clientPanel');
+  const id = panel.dataset.unitId;
+  if(!id) return;
+  if(!store[id]) store[id] = {};
+  const client = {
+    name: document.getElementById('clientName').value.trim(),
+    firstName: document.getElementById('clientFirstName').value.trim(),
+    phone: document.getElementById('clientPhone').value.trim(),
+    budget: document.getElementById('clientBudget').value.trim(),
+    typo: document.getElementById('clientTypo').value.trim(),
+    surface: document.getElementById('clientSurface').value.trim(),
+    apport: document.getElementById('clientApport').value.trim(),
+    reste: document.getElementById('clientReste').value.trim(),
+    credit: document.getElementById('clientCredit').value,
+  };
+  store[id].client = client;
+  store[id].status = 'vendu';
+  persist();
+  applyFilters();
+  renderGestion();
+  toast('Informations client enregistrées et appartement vendu');
 }
 
 function renderStats(units){
@@ -620,10 +684,13 @@ function renderGestion(){
     table.className='gestion';
     table.innerHTML = `<thead><tr>
       <th style="width:60px;">Appt</th><th style="width:70px;">Type</th><th style="width:70px;">Côté</th>
-      <th>Surface (m²)</th><th>Prix (DA)</th><th style="width:130px;">Statut</th><th style="width:36px;"></th>
+      <th>Surface (m²)</th><th>Prix (DA)</th><th style="width:130px;">Statut</th><th style="width:90px;">Info client</th><th style="width:36px;"></th>
     </tr></thead><tbody></tbody>`;
     const tbody = table.querySelector('tbody');
     list.forEach(u=>{
+      const client = (store[u.id] && store[u.id].client) ? store[u.id].client : null;
+      const clientLabel = client ? 'Voir client' : 'Client';
+      const clientButton = `<button class="btn ghost small" data-client="${u.id}">${clientLabel}</button>`;
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><strong>${u.letter}</strong></td>
@@ -637,6 +704,7 @@ function renderGestion(){
             <option value="vendu" ${u.status==='vendu'?'selected':''}>Vendu</option>
           </select>
         </td>
+        <td>${clientButton}</td>
         <td>${u.custom ? `<button class="del-btn" data-del="${u.id}" title="Supprimer">✕</button>` : ''}</td>
       `;
       tbody.appendChild(tr);
@@ -754,6 +822,8 @@ function switchTab(name){
   if(name==='gestion') renderGestion();
 }
 document.querySelectorAll('.tab-btn').forEach(b=> b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
+document.getElementById('btnSaveClient').addEventListener('click', saveClientPanel);
+document.getElementById('btnCloseClient').addEventListener('click', closeClientPanel);
 
 /* ---------------- Wire filters ---------------- */
 document.getElementById('btnFilter').addEventListener('click', applyFilters);

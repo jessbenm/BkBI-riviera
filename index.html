@@ -6,8 +6,6 @@
 <title>BKBI — Répertoire des appartements</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
 :root{
   --bg: #E9ECF1;
@@ -348,26 +346,11 @@ function apportRate(floor){ return floor <= 4 ? 0.45 : 0.40; }
 function fmt(n){ if(n===undefined||n===null||n==='' || isNaN(n)) return '—'; return Number(n).toLocaleString('fr-FR').replace(/,/g,' '); }
 
 /* ---------------------------------------------------------
-   PARTAGE ENTRE PLUSIEURS PERSONNES (Firebase Firestore)
+   MODE LOCAL SEULEMENT — Supabase non intégré pour l'instant
 --------------------------------------------------------- */
-const firebaseConfig = {
-  apiKey: "AIzaSyCXM6Je4lKUWeITsReuwWFpdLpv5jYWePg",
-  authDomain: "bkbi-336be.firebaseapp.com",
-  projectId: "bkbi-336be",
-  storageBucket: "bkbi-336be.firebasestorage.app",
-  messagingSenderId: "635527203653",
-  appId: "1:635527203653:web:6bb05588be8c0ae45d0c2c"
-};
-const FIREBASE_ENABLED = firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith('COLLEZ');
+const FIREBASE_ENABLED = false;
 
 let db = null, docRef = null;
-if (FIREBASE_ENABLED) {
-  try{
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
-    docRef = db.collection('bkbi').doc('data');
-  }catch(e){ console.error('Firebase init error', e); }
-}
 
 function loadStoreLocal(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }catch(e){ return {}; } }
 function saveStoreLocal(store){ localStorage.setItem(LS_KEY, JSON.stringify(store)); }

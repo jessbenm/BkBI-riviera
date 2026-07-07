@@ -6,6 +6,7 @@
 <title>BKBI — Répertoire des appartements</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
 <style>
 :root{
   --bg: #E9ECF1;
@@ -346,11 +347,17 @@ function apportRate(floor){ return floor <= 4 ? 0.45 : 0.40; }
 function fmt(n){ if(n===undefined||n===null||n==='' || isNaN(n)) return '—'; return Number(n).toLocaleString('fr-FR').replace(/,/g,' '); }
 
 /* ---------------------------------------------------------
-   MODE LOCAL SEULEMENT — Supabase non intégré pour l'instant
+   SYNCHRONISATION SUPABASE
+   Projet Supabase fourni par l'utilisateur.
+   Créez une table `bkbi_sync` avec une ligne `id='data'` et une colonne `payload` JSONB.
 --------------------------------------------------------- */
-const FIREBASE_ENABLED = false;
+const SUPABASE_URL = 'https://ebxxxigzpyabdexwnoqp.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_6c9qGdR9QvOn75y6NmzNiA_-2w5dUcY';
+const BKBI_TABLE = 'bkbi_sync';
+const BKBI_ROW = 'data';
+const SUPABASE_ENABLED = SUPABASE_URL && SUPABASE_KEY;
 
-let db = null, docRef = null;
+let supabaseClient = null;
 
 function loadStoreLocal(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }catch(e){ return {}; } }
 function saveStoreLocal(store){ localStorage.setItem(LS_KEY, JSON.stringify(store)); }
@@ -362,11 +369,8 @@ let customUnits = []; // [{floor,letter,typo}]
 
 /* ---------------------------------------------------------
    CORRECTIF : ce verrou empêche persist() d'envoyer quoi que
-   ce soit vers Firestore tant que la première lecture des
-   données existantes (onSnapshot) n'a pas été reçue.
-   Sans ça, au chargement de la page, store={} pouvait être
-   envoyé vers Firestore avant d'avoir récupéré les vraies
-   données, ce qui écrasait tout.
+   ce soit vers Supabase tant que la première lecture des
+   données existantes n'a pas été reçue.
 --------------------------------------------------------- */
 let initialSyncDone = false;
 
@@ -391,49 +395,71 @@ function onDataChange(){
 function persist(){
   saveStoreLocal(store);
   saveCustomLocal(customUnits);
-  if(FIREBASE_ENABLED && docRef){
+  if(SUPABASE_ENABLED && supabaseClient){
     if(!initialSyncDone){
-      // Sécurité : on ne pousse rien tant qu'on n'a pas reçu
-      // les données existantes de Firestore au moins une fois.
       console.warn('Écriture ignorée : synchronisation initiale pas encore terminée.');
       return;
     }
     setSyncStatus('Synchronisation…', '#B7BEC8');
-    docRef.set({ store, customUnits }).then(()=>{
-      setSyncStatus('🟢 Synchronisé avec l\'équipe', '#7FD7B0');
-    }).catch(err=>{
-      console.error(err);
-      setSyncStatus('🔴 Non synchronisé — copie gardée sur cet appareil', '#E39A9A');
-      toast('Non synchronisé (sauvegardé localement en attendant)');
-    });
+    supabaseClient
+      .from(BKBI_TABLE)
+      .upsert({ id: BKBI_ROW, payload: { store, customUnits } }, { onConflict: 'id' })
+      .then(({ error })=>{
+        if(error){ throw error; }
+        setSyncStatus('🟢 Synchronisé avec Supabase', '#7FD7B0');
+      }).catch(err=>{
+        console.error(err);
+        setSyncStatus('🔴 Non synchronisé — copie gardée sur cet appareil', '#E39A9A');
+        toast('Non synchronisé (sauvegardé localement en attendant)');
+      });
   } else {
     setSyncStatus('⚪ Mode local (non partagé)', '#B7BEC8');
   }
 }
 
-function initData(){
-  if(FIREBASE_ENABLED && docRef){
-    setSyncStatus('Connexion…', '#B7BEC8');
-    docRef.onSnapshot(snap=>{
-      const d = snap.data() || {};
-      store = d.store || {};
-      customUnits = d.customUnits || [];
-      saveStoreLocal(store);
-      saveCustomLocal(customUnits);
-      initialSyncDone = true; // à partir d'ici, persist() est autorisé
-      setSyncStatus('🟢 Synchronisé avec l\'équipe', '#7FD7B0');
-      onDataChange();
-    }, err=>{
-      console.error(err);
+async function initData(){
+  if(SUPABASE_ENABLED){
+    setSyncStatus('Connexion Supabase…', '#B7BEC8');
+    try{
+      supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }catch(err){
+      console.error('Supabase init error', err);
+      supabaseClient = null;
+    }
+  }
+
+  if(SUPABASE_ENABLED && supabaseClient){
+    const { data, error } = await supabaseClient
+      .from(BKBI_TABLE)
+      .select('payload')
+      .eq('id', BKBI_ROW)
+      .maybeSingle();
+
+    if(error){
+      console.error(error);
+      setSyncStatus('🔴 Erreur Supabase — copie locale affichée', '#E39A9A');
       store = loadStoreLocal();
       customUnits = loadCustomLocal();
-      setSyncStatus('🔴 Hors ligne — copie locale affichée', '#E39A9A');
       onDataChange();
-    });
+      return;
+    }
+
+    if(data && data.payload){
+      store = data.payload.store || {};
+      customUnits = data.payload.customUnits || [];
+      saveStoreLocal(store);
+      saveCustomLocal(customUnits);
+    } else {
+      store = loadStoreLocal();
+      customUnits = loadCustomLocal();
+    }
+    initialSyncDone = true;
+    setSyncStatus('🟢 Synchronisé avec Supabase', '#7FD7B0');
+    onDataChange();
   } else {
     store = loadStoreLocal();
     customUnits = loadCustomLocal();
-    setSyncStatus('⚪ Mode local (non partagé — voir le code pour activer le partage)', '#B7BEC8');
+    setSyncStatus('⚪ Mode local (non partagé — renseignez Supabase)', '#B7BEC8');
     onDataChange();
   }
 }

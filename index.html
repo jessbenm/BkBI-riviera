@@ -669,35 +669,86 @@ function saveClientPanel(){
   toast('Informations client enregistrées et appartement vendu');
 }
 
-function getClientPanelText(){
+function getClientPanelData(){
   const panel = document.getElementById('clientPanel');
   const id = panel.dataset.unitId;
   if(!id) return null;
-  const lines = [];
-  lines.push(`Appartement : ${document.getElementById('clientUnit').value} (${document.getElementById('clientTypo').value})`);
-  lines.push(`Étage : ${document.getElementById('clientFloor').value}`);
-  lines.push(`Nom : ${document.getElementById('clientName').value}`);
-  lines.push(`Prénom : ${document.getElementById('clientFirstName').value}`);
-  lines.push(`Téléphone : ${document.getElementById('clientPhone').value}`);
-  lines.push(`Budget : ${document.getElementById('clientBudget').value} DA`);
-  lines.push(`Surface : ${document.getElementById('clientSurface').value} m²`);
-  lines.push(`Apport initial : ${document.getElementById('clientApport').value} DA`);
-  lines.push(`Reste à payer : ${document.getElementById('clientReste').value} DA`);
-  lines.push(`Crédit bancaire : ${document.getElementById('clientCredit').value === 'oui' ? 'Oui' : 'Non'}`);
-  return lines.join('\n');
+  return {
+    promotion: 'BKBI — Promotion Résidentielle',
+    date: new Date().toLocaleDateString('fr-FR'),
+    appartement: document.getElementById('clientUnit').value,
+    typologie: document.getElementById('clientTypo').value,
+    etage: document.getElementById('clientFloor').value,
+    nom: document.getElementById('clientName').value,
+    prenom: document.getElementById('clientFirstName').value,
+    telephone: document.getElementById('clientPhone').value,
+    budget: document.getElementById('clientBudget').value,
+    surface: document.getElementById('clientSurface').value,
+    apport: document.getElementById('clientApport').value,
+    reste: document.getElementById('clientReste').value,
+    credit: document.getElementById('clientCredit').value === 'oui' ? 'Oui' : 'Non',
+    id
+  };
+}
+
+function renderClientPrintHtml(data){
+  return `
+    <html><head><title>Fiche client BKBI</title>
+    <style>
+      body{font-family:Arial,sans-serif;margin:0;padding:32px;color:#1F2937;background:#F8FAFC;}
+      .page{background:#fff;padding:30px;border-radius:14px;box-shadow:0 20px 60px rgba(15,23,42,.1);max-width:780px;margin:auto;}
+      h1{font-size:24px;margin-bottom:8px;letter-spacing:.05em;color:#111827;text-transform:uppercase;}
+      .subtitle{font-size:13px;color:#4B5563;margin-bottom:24px;}
+      .section{display:grid;grid-template-columns:repeat(2,minmax(180px,1fr));gap:18px;margin-bottom:24px;}
+      .block{padding:18px;border:1px solid #E5E7EB;border-radius:14px;background:#F9FAFB;}
+      .block h2{font-size:12px;margin:0 0 10px;color:#6B7280;text-transform:uppercase;letter-spacing:.08em;}
+      .field{margin-bottom:10px;}
+      .label{font-size:11px;color:#6B7280;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;display:block;}
+      .value{font-size:15px;color:#111827;line-height:1.5;}
+      .footer{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#6B7280;border-top:1px solid #E5E7EB;padding-top:18px;margin-top:18px;}
+    </style>
+    </head><body><div class="page">
+      <h1>Fiche client</h1>
+      <div class="subtitle">${data.promotion} · ${data.date}</div>
+      <div class="section">
+        <div class="block">
+          <h2>Informations client</h2>
+          <div class="field"><span class="label">Nom</span><span class="value">${data.nom}</span></div>
+          <div class="field"><span class="label">Prénom</span><span class="value">${data.prenom}</span></div>
+          <div class="field"><span class="label">Téléphone</span><span class="value">${data.telephone}</span></div>
+          <div class="field"><span class="label">Budget</span><span class="value">${data.budget ? data.budget + ' DA' : '—'}</span></div>
+        </div>
+        <div class="block">
+          <h2>Appartement</h2>
+          <div class="field"><span class="label">Appartement</span><span class="value">${data.appartement}</span></div>
+          <div class="field"><span class="label">Typologie</span><span class="value">${data.typologie}</span></div>
+          <div class="field"><span class="label">Étage</span><span class="value">${data.etage}</span></div>
+          <div class="field"><span class="label">Surface</span><span class="value">${data.surface ? data.surface + ' m²' : '—'}</span></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="block">
+          <h2>Financement</h2>
+          <div class="field"><span class="label">Apport initial</span><span class="value">${data.apport ? data.apport + ' DA' : '—'}</span></div>
+          <div class="field"><span class="label">Reste à payer</span><span class="value">${data.reste ? data.reste + ' DA' : '—'}</span></div>
+        </div>
+        <div class="block">
+          <h2>Prêt bancaire</h2>
+          <div class="field"><span class="label">Crédit</span><span class="value">${data.credit}</span></div>
+        </div>
+      </div>
+      <div class="footer"><span>BKBI — Fiche client</span><span>Référence : ${data.id}</span></div>
+    </div></body></html>`;
 }
 
 function printClientPanel(){
   const panel = document.getElementById('clientPanel');
   if(panel.style.display === 'none') return;
-  const text = getClientPanelText();
-  if(!text) return;
+  const data = getClientPanelData();
+  if(!data) return;
   const printWindow = window.open('', '_blank');
   if(!printWindow) { toast('Impossible d’ouvrir la fenêtre d’impression'); return; }
-  const html = `
-    <html><head><title>Fiche client</title>
-    <style>body{font-family:Arial,sans-serif;padding:24px;}h1{font-size:22px;}pre{white-space:pre-wrap;font-size:15px;line-height:1.5;}</style>
-    </head><body><h1>Fiche client</h1><pre>${text}</pre></body></html>`;
+  const html = renderClientPrintHtml(data);
   printWindow.document.write(html);
   printWindow.document.close();
   printWindow.focus();
@@ -707,16 +758,61 @@ function printClientPanel(){
 function downloadClientPanel(){
   const panel = document.getElementById('clientPanel');
   if(panel.style.display === 'none') return;
-  const text = getClientPanelText();
-  if(!text) return;
+  const data = getClientPanelData();
+  if(!data) return;
   try{
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit:'pt', format:'a4' });
-    const lines = doc.splitTextToSize(text, 520);
-    doc.setFont('Helvetica');
-    doc.setFontSize(12);
-    doc.text(lines, 40, 60);
-    const id = panel.dataset.unitId || 'client';
+    const margin = 40;
+    let y = 60;
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text('Fiche client BKBI', margin, y);
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`Promotion : ${data.promotion}`, margin, y + 24);
+    doc.text(`Date : ${data.date}`, 520, y + 24, { align: 'right' });
+
+    y += 50;
+    const sections = [
+      { title: 'Informations client', items: [
+        ['Nom', data.nom], ['Prénom', data.prenom], ['Téléphone', data.telephone], ['Budget', data.budget ? data.budget + ' DA' : '—']
+      ]},
+      { title: 'Appartement', items: [
+        ['Appartement', data.appartement], ['Typologie', data.typologie], ['Étage', data.etage], ['Surface', data.surface ? data.surface + ' m²' : '—']
+      ]},
+      { title: 'Financement', items: [
+        ['Apport initial', data.apport ? data.apport + ' DA' : '—'], ['Reste à payer', data.reste ? data.reste + ' DA' : '—']
+      ]},
+      { title: 'Prêt bancaire', items: [
+        ['Crédit', data.credit]
+      ]}
+    ];
+
+    sections.forEach(section=>{
+      doc.setFillColor(245, 247, 250);
+      doc.rect(margin, y - 8, 520, 24, 'F');
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.text(section.title, margin + 6, y + 10);
+      y += 30;
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(11);
+      section.items.forEach(([label, value])=>{
+        doc.text(`${label}:`, margin + 6, y);
+        doc.text(String(value), margin + 140, y);
+        y += 18;
+      });
+      y += 12;
+    });
+
+    doc.setDrawColor(226, 232, 240);
+    doc.line(margin, y, 560, y);
+    y += 18;
+    doc.setFontSize(10);
+    doc.text(`Référence BKBI : ${data.id}`, margin, y);
+    doc.text('Page 1', 560, y, { align: 'right' });
+    const id = data.id || 'client';
     doc.save(`fiche_client_${id}.pdf`);
   }catch(err){
     console.error(err);

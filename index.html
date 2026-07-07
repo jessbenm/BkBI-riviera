@@ -295,7 +295,6 @@ table.gestion .del-btn{background:none;border:none;color:#B34141;cursor:pointer;
 /* ---------------------------------------------------------
    STRUCTURE DE BASE — telle que décrite pour la promotion BKBI
    A, B = côté Sud  |  C, D = côté Nord
-   Le 8ème étage n'a pas été communiqué : pas d'unités par défaut.
 --------------------------------------------------------- */
 const SHELL = {
   1: [['A','F4'],['B','F3'],['C','F4'],['D','F4']],
@@ -310,7 +309,7 @@ const SHELL = {
   10:[['A','F5'],['B','F4']],
   11:[['A','F4'],['B','F4']],
 };
-const BASE_FLOORS = [1,2,3,4,5,6,7,8,9,10,11]; // 8 affiché comme vide dans la nav
+const BASE_FLOORS = [1,2,3,4,5,6,7,8,9,10,11];
 let ALL_FLOORS = [...BASE_FLOORS];
 
 const LS_KEY = 'bkbi_units_v1';
@@ -322,11 +321,6 @@ function fmt(n){ if(n===undefined||n===null||n==='' || isNaN(n)) return '—'; r
 
 /* ---------------------------------------------------------
    PARTAGE ENTRE PLUSIEURS PERSONNES (Firebase Firestore)
-   1. Créez un projet gratuit sur https://console.firebase.google.com
-   2. Ajoutez une "application web", copiez la config fournie ci-dessous
-   3. Activez "Firestore Database" (mode production) dans la console
-   4. Collez vos identifiants ici. Tant que ce n'est pas fait,
-      l'outil continue de fonctionner en mode local (un seul appareil).
 --------------------------------------------------------- */
 const firebaseConfig = {
   apiKey: "AIzaSyCXM6Je4lKUWeITsReuwWFpdLpv5jYWePg",
@@ -355,6 +349,16 @@ function saveCustomLocal(list){ localStorage.setItem(LS_CUSTOM, JSON.stringify(l
 let store = {};
 let customUnits = []; // [{floor,letter,typo}]
 
+/* ---------------------------------------------------------
+   CORRECTIF : ce verrou empêche persist() d'envoyer quoi que
+   ce soit vers Firestore tant que la première lecture des
+   données existantes (onSnapshot) n'a pas été reçue.
+   Sans ça, au chargement de la page, store={} pouvait être
+   envoyé vers Firestore avant d'avoir récupéré les vraies
+   données, ce qui écrasait tout.
+--------------------------------------------------------- */
+let initialSyncDone = false;
+
 function setSyncStatus(text, color){
   const el = document.getElementById('syncStatus');
   if(el){ el.textContent = text; el.style.color = color || '#B7BEC8'; }
@@ -377,6 +381,12 @@ function persist(){
   saveStoreLocal(store);
   saveCustomLocal(customUnits);
   if(FIREBASE_ENABLED && docRef){
+    if(!initialSyncDone){
+      // Sécurité : on ne pousse rien tant qu'on n'a pas reçu
+      // les données existantes de Firestore au moins une fois.
+      console.warn('Écriture ignorée : synchronisation initiale pas encore terminée.');
+      return;
+    }
     setSyncStatus('Synchronisation…', '#B7BEC8');
     docRef.set({ store, customUnits }).then(()=>{
       setSyncStatus('🟢 Synchronisé avec l\'équipe', '#7FD7B0');
@@ -399,6 +409,7 @@ function initData(){
       customUnits = d.customUnits || [];
       saveStoreLocal(store);
       saveCustomLocal(customUnits);
+      initialSyncDone = true; // à partir d'ici, persist() est autorisé
       setSyncStatus('🟢 Synchronisé avec l\'équipe', '#7FD7B0');
       onDataChange();
     }, err=>{

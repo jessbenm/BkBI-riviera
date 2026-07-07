@@ -198,6 +198,34 @@ table.gestion .del-btn{background:none;border:none;color:#B34141;cursor:pointer;
       <button class="tab-btn" data-tab="gestion">Gestion des prix</button>
     </div>
 
+    <div class="client-panel" id="clientPanel" style="display:none;position:relative;top:0;">
+      <h3 style="margin:0 0 12px;font-size:15px;">Fiche client</h3>
+      <div class="filters-grid">
+        <div class="field"><label>Nom</label><input type="text" id="clientName"></div>
+        <div class="field"><label>Prénom</label><input type="text" id="clientFirstName"></div>
+        <div class="field"><label>Téléphone</label><input type="text" id="clientPhone"></div>
+        <div class="field"><label>Budget (DA)</label><input type="number" id="clientBudget"></div>
+        <div class="field"><label>Typologie</label><input type="text" id="clientTypo"></div>
+        <div class="field"><label>Surface (m²)</label><input type="number" id="clientSurface"></div>
+        <div class="field"><label>Étage</label><input type="text" id="clientFloor" disabled></div>
+        <div class="field"><label>Appartement</label><input type="text" id="clientUnit" disabled></div>
+        <div class="field"><label>Apport initial (DA)</label><input type="number" id="clientApport"></div>
+        <div class="field"><label>Reste à payer (DA)</label><input type="number" id="clientReste"></div>
+        <div class="field"><label>Crédit bancaire</label>
+          <select id="clientCredit">
+            <option value="non">Non</option>
+            <option value="oui">Oui</option>
+          </select>
+        </div>
+      </div>
+      <div class="filters-actions" style="margin-top:10px;">
+        <button class="btn gold" id="btnSaveClient">Enregistrer et vendre</button>
+        <button class="btn ghost" id="btnPrintClient">Imprimer</button>
+        <button class="btn ghost" id="btnDownloadClient">Télécharger</button>
+        <button class="btn ghost" id="btnCloseClient">Fermer</button>
+      </div>
+    </div>
+
     <!-- ===== RECHERCHE ===== -->
     <section id="tab-recherche">
       <div class="filters">
@@ -255,31 +283,6 @@ table.gestion .del-btn{background:none;border:none;color:#B34141;cursor:pointer;
         <div class="results-summary">
         <span id="resultsCount">— résultats</span>
         <span id="resultsHint"></span>
-      </div>
-      <div class="client-panel" id="clientPanel" style="display:none;">
-        <h3 style="margin:0 0 12px;font-size:15px;">Informations client</h3>
-        <div class="filters-grid">
-          <div class="field"><label>Nom</label><input type="text" id="clientName"></div>
-          <div class="field"><label>Prénom</label><input type="text" id="clientFirstName"></div>
-          <div class="field"><label>Téléphone</label><input type="text" id="clientPhone"></div>
-          <div class="field"><label>Budget (DA)</label><input type="number" id="clientBudget"></div>
-          <div class="field"><label>Typologie</label><input type="text" id="clientTypo"></div>
-          <div class="field"><label>Surface (m²)</label><input type="number" id="clientSurface"></div>
-          <div class="field"><label>Étage</label><input type="text" id="clientFloor" disabled></div>
-          <div class="field"><label>Appartement</label><input type="text" id="clientUnit" disabled></div>
-          <div class="field"><label>Apport initial (DA)</label><input type="number" id="clientApport"></div>
-          <div class="field"><label>Reste à payer (DA)</label><input type="number" id="clientReste"></div>
-          <div class="field"><label>Crédit bancaire</label>
-            <select id="clientCredit">
-              <option value="non">Non</option>
-              <option value="oui">Oui</option>
-            </select>
-          </div>
-        </div>
-        <div class="filters-actions" style="margin-top:10px;">
-          <button class="btn gold" id="btnSaveClient">Enregistrer et vendre</button>
-          <button class="btn ghost" id="btnCloseClient">Fermer</button>
-        </div>
       </div>
       <div class="results-grid" id="resultsGrid"></div>
     </section>
@@ -607,7 +610,6 @@ function renderResults(list){
 }
 
 function openClientPanel(unit){
-  switchTab('recherche');
   const panel = document.getElementById('clientPanel');
   const rec = store[unit.id] || {};
   const client = rec.client || {};
@@ -655,6 +657,55 @@ function saveClientPanel(){
   applyFilters();
   renderGestion();
   toast('Informations client enregistrées et appartement vendu');
+}
+
+function getClientPanelText(){
+  const panel = document.getElementById('clientPanel');
+  const id = panel.dataset.unitId;
+  if(!id) return null;
+  const lines = [];
+  lines.push(`Appartement : ${document.getElementById('clientUnit').value} (${document.getElementById('clientTypo').value})`);
+  lines.push(`Étage : ${document.getElementById('clientFloor').value}`);
+  lines.push(`Nom : ${document.getElementById('clientName').value}`);
+  lines.push(`Prénom : ${document.getElementById('clientFirstName').value}`);
+  lines.push(`Téléphone : ${document.getElementById('clientPhone').value}`);
+  lines.push(`Budget : ${document.getElementById('clientBudget').value} DA`);
+  lines.push(`Surface : ${document.getElementById('clientSurface').value} m²`);
+  lines.push(`Apport initial : ${document.getElementById('clientApport').value} DA`);
+  lines.push(`Reste à payer : ${document.getElementById('clientReste').value} DA`);
+  lines.push(`Crédit bancaire : ${document.getElementById('clientCredit').value === 'oui' ? 'Oui' : 'Non'}`);
+  return lines.join('\n');
+}
+
+function printClientPanel(){
+  const panel = document.getElementById('clientPanel');
+  if(panel.style.display === 'none') return;
+  const text = getClientPanelText();
+  if(!text) return;
+  const printWindow = window.open('', '_blank');
+  if(!printWindow) { toast('Impossible d’ouvrir la fenêtre d’impression'); return; }
+  const html = `
+    <html><head><title>Fiche client</title>
+    <style>body{font-family:Arial,sans-serif;padding:24px;}h1{font-size:22px;}pre{white-space:pre-wrap;font-size:15px;line-height:1.5;}</style>
+    </head><body><h1>Fiche client</h1><pre>${text}</pre></body></html>`;
+  printWindow.document.write(html);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+}
+
+function downloadClientPanel(){
+  const panel = document.getElementById('clientPanel');
+  if(panel.style.display === 'none') return;
+  const text = getClientPanelText();
+  if(!text) return;
+  const id = panel.dataset.unitId || 'client';
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `fiche_client_${id}.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 function renderStats(units){
@@ -802,6 +853,8 @@ function switchTab(name){
 document.querySelectorAll('.tab-btn').forEach(b=> b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 document.getElementById('btnSaveClient').addEventListener('click', saveClientPanel);
 document.getElementById('btnCloseClient').addEventListener('click', closeClientPanel);
+document.getElementById('btnPrintClient').addEventListener('click', printClientPanel);
+document.getElementById('btnDownloadClient').addEventListener('click', downloadClientPanel);
 
 /* ---------------- Wire filters ---------------- */
 document.getElementById('btnFilter').addEventListener('click', applyFilters);

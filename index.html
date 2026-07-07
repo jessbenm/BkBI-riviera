@@ -607,6 +607,7 @@ function renderResults(list){
 }
 
 function openClientPanel(unit){
+  switchTab('recherche');
   const panel = document.getElementById('clientPanel');
   const rec = store[unit.id] || {};
   const client = rec.client || {};
@@ -720,14 +721,14 @@ function renderGestion(){
   });
   container.querySelectorAll('[data-client]').forEach(btn=>{
     btn.addEventListener('click', e=>{
-      const id = e.target.dataset.client;
+      const id = e.currentTarget.dataset.client;
       const unit = buildUnits().find(u=>u.id===id);
       if(unit) openClientPanel(unit);
     });
   });
   container.querySelectorAll('[data-del]').forEach(btn=>{
     btn.addEventListener('click', e=>{
-      const id = e.target.dataset.del;
+      const id = e.currentTarget.dataset.del;
       const [floorLetter, typo] = id.split('-');
       const floor = parseInt(floorLetter);
       const letter = floorLetter.replace(String(floor),'');

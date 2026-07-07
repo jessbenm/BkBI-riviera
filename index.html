@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-3hTXlL88u3XDYba5yJa0dW4mbdvjXtYcP1nBzjljA8WBqF5aYwT5FFgLiyM8m6bZN27Ru7RejNmNBBb9S+2I7g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <style>
 :root{
   --bg: #E9ECF1;
@@ -148,6 +149,15 @@ table.gestion td{padding:6px 12px;border-bottom:1px solid var(--line);font-size:
 table.gestion tr:last-child td{border-bottom:none;}
 table.gestion input, table.gestion select{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:5px;font-size:13px;font-family:'IBM Plex Mono',monospace;}
 table.gestion .del-btn{background:none;border:none;color:#B34141;cursor:pointer;font-size:13px;}
+
+.client-panel{background:#FEFEFE;border:1px solid #E9EDF3;border-radius:22px;padding:30px;max-width:900px;margin:0 auto 24px;box-shadow:0 32px 80px rgba(15,23,42,.12);}
+.client-panel h3{margin:0 0 18px;font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:#1F2937;}
+.client-panel .filters-grid{grid-template-columns:repeat(2,minmax(220px,1fr));gap:18px;}
+.client-panel .field{background:#F8FAFC;border:1px solid #E5E7EB;border-radius:14px;padding:12px;}
+.client-panel .field label{margin-bottom:6px;color:#4B5563;}
+.client-panel .field input,
+.client-panel .field select{border:1px solid #D1D5DB;background:#fff;border-radius:10px;padding:10px 12px;}
+.client-panel .filters-actions{justify-content:flex-end;gap:12px;}
 
 .add-form{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);margin-top:8px;}
 .add-form .filters-grid{margin-bottom:12px;}
@@ -330,7 +340,7 @@ const SHELL = {
   2: [['A','F4'],['B','F3'],['C','F4'],['D','F4']],
   3: [['A','F4'],['B','F3'],['C','F4'],['D','F4']],
   4: [['A','F4'],['B','F3'],['C','F4'],['D','F4']],
-  5: [['A','F4'],['B','F3'],['C','F4'],['D','F4']],
+  5: [['B','F3'],['C','F4'],['D','F4']],
   6: [['A','F4'],['B','F3'],['C','F3'],['D','F3']],
   7: [['A','F4'],['B','F3'],['C','F3'],['D','F3']],
   8: [['A','F4'],['B','F3'],['C','F3'],['D','F3']],
@@ -699,13 +709,19 @@ function downloadClientPanel(){
   if(panel.style.display === 'none') return;
   const text = getClientPanelText();
   if(!text) return;
-  const id = panel.dataset.unitId || 'client';
-  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `fiche_client_${id}.txt`;
-  a.click();
-  URL.revokeObjectURL(a.href);
+  try{
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:'pt', format:'a4' });
+    const lines = doc.splitTextToSize(text, 520);
+    doc.setFont('Helvetica');
+    doc.setFontSize(12);
+    doc.text(lines, 40, 60);
+    const id = panel.dataset.unitId || 'client';
+    doc.save(`fiche_client_${id}.pdf`);
+  }catch(err){
+    console.error(err);
+    toast('Impossible de générer le PDF');
+  }
 }
 
 function renderStats(units){

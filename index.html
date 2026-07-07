@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BKBI — Répertoire des appartements</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --bg: #E9ECF1;
+  --panel: #FFFFFF;
+  --panel-2: #F3F5F8;
+  --ink: #171B21;
+  --ink-soft: #5B6472;
+  --line: #DBE0E7;
+  --sud: #B8672E;
+  --sud-soft: #F3E3D6;
+  --nord: #2E5C87;
+  --nord-soft: #DCE6EF;
+  --dispo: #1E7F5C;
+  --dispo-soft: #DEEFE7;
+  --vendu: #97A0AC;
+  --vendu-soft: #E7E9EC;
+  --gold: #A9822B;
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(23,27,33,.06), 0 8px 24px rgba(23,27,33,.06);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Work Sans',sans-serif;}
+h1,h2,h3,.display{font-family:'Oswald',sans-serif;letter-spacing:.02em;text-transform:uppercase;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+
+/* ---------- Topbar ---------- */
+.topbar{
+  background:var(--ink);color:#fff;padding:22px 32px;
+  display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;
+  border-bottom:4px solid var(--gold);
+}
+.brand{display:flex;align-items:baseline;gap:14px;}
+.brand .mark{font-family:'Oswald',sans-serif;font-weight:700;font-size:30px;letter-spacing:.06em;}
+.brand .tag{color:#C7CCD4;font-size:13px;letter-spacing:.03em;}
+.stats{display:flex;gap:22px;}
+.stat{text-align:right;}
+.stat .num{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;line-height:1;}
+.stat .lbl{font-size:11px;color:#B7BEC8;text-transform:uppercase;letter-spacing:.06em;margin-top:4px;}
+
+/* ---------- Shell ---------- */
+.shell{display:flex;align-items:flex-start;gap:0;max-width:1400px;margin:0 auto;}
+.building{
+  width:210px;flex-shrink:0;background:var(--ink);color:#fff;padding:18px 14px 24px;
+  min-height:640px;position:sticky;top:0;
+}
+.building h3{font-size:12px;color:#B7BEC8;margin:0 0 12px;letter-spacing:.08em;}
+.floor-row{
+  display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;
+  border:1px solid transparent;margin-bottom:3px;transition:background .15s;
+}
+.floor-row:hover{background:rgba(255,255,255,.06);}
+.floor-row.active{background:rgba(169,130,43,.18);border-color:var(--gold);}
+.floor-num{font-family:'IBM Plex Mono',monospace;font-size:13px;width:22px;color:#E7E9EC;}
+.floor-dots{display:flex;gap:4px;flex:1;flex-wrap:wrap;}
+.dot{width:9px;height:9px;border-radius:50%;border:1.5px solid transparent;}
+.dot.sud{background:var(--sud);}
+.dot.nord{background:var(--nord);}
+.dot.vendu{background:transparent;border-color:#5B6472;}
+.floor-empty{font-size:10px;color:#6E7686;font-style:italic;padding:4px 8px;}
+.legend{margin-top:16px;font-size:11px;color:#B7BEC8;line-height:1.9;border-top:1px solid rgba(255,255,255,.12);padding-top:12px;}
+.legend .dot{margin-right:6px;vertical-align:middle;}
+
+main{flex:1;min-width:0;padding:24px 28px 60px;}
+
+/* ---------- Tabs ---------- */
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line);}
+.tab-btn{
+  background:none;border:none;padding:10px 18px;font-family:'Oswald',sans-serif;font-size:14px;
+  letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);cursor:pointer;
+  border-bottom:3px solid transparent;
+}
+.tab-btn.active{color:var(--ink);border-bottom-color:var(--gold);}
+
+/* ---------- Filters ---------- */
+.filters{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 20px;box-shadow:var(--shadow);margin-bottom:20px;
+}
+.filters-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;}
+.field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:5px;}
+.field select, .field input{
+  width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-family:'Work Sans',sans-serif;
+  font-size:14px;background:#fff;color:var(--ink);
+}
+.range-pair{display:flex;gap:6px;}
+.filters-actions{display:flex;gap:10px;margin-top:16px;}
+.btn{
+  padding:9px 18px;border-radius:6px;border:1px solid var(--ink);background:var(--ink);color:#fff;
+  font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;
+}
+.btn.ghost{background:transparent;color:var(--ink);}
+.btn.gold{background:var(--gold);border-color:var(--gold);}
+.btn.small{padding:6px 12px;font-size:11px;}
+
+.results-summary{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;color:var(--ink-soft);font-size:13px;}
+
+/* ---------- Cards ---------- */
+.results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;
+}
+.card.vendu{opacity:.55;}
+.card-head{
+  display:flex;justify-content:space-between;align-items:center;padding:12px 16px;
+  background:var(--panel-2);border-bottom:1px solid var(--line);
+}
+.card-head .floor-badge{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);}
+.card-head .unit-name{font-family:'Oswald',sans-serif;font-size:20px;font-weight:600;}
+.side-tag{
+  font-size:10px;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;
+}
+.side-tag.sud{background:var(--sud-soft);color:var(--sud);}
+.side-tag.nord{background:var(--nord-soft);color:var(--nord);}
+.card-body{padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:10px;}
+.row-line{display:flex;justify-content:space-between;font-size:13px;}
+.row-line .k{color:var(--ink-soft);}
+.row-line .v{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+.price-big{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;margin:2px 0;}
+.apport-box{background:var(--panel-2);border-radius:8px;padding:10px 12px;font-size:12px;display:flex;flex-direction:column;gap:4px;}
+.apport-box .row-line{font-size:12px;}
+.status-pill{align-self:flex-start;font-size:10px;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+.status-pill.disponible{background:var(--dispo-soft);color:var(--dispo);}
+.status-pill.vendu{background:var(--vendu-soft);color:var(--vendu);}
+.card-foot{padding:10px 16px;border-top:1px solid var(--line);display:flex;gap:8px;}
+.empty-state{padding:60px 20px;text-align:center;color:var(--ink-soft);}
+.empty-state h3{color:var(--ink);}
+
+/* ---------- Gestion ---------- */
+.gestion-floor{margin-bottom:22px;}
+.gestion-floor h3{font-size:15px;margin:0 0 8px;display:flex;align-items:center;gap:10px;}
+.gestion-floor h3 .apport-tag{font-family:'IBM Plex Mono',monospace;font-size:11px;background:var(--panel-2);padding:3px 8px;border-radius:12px;color:var(--ink-soft);text-transform:none;letter-spacing:0;}
+table.gestion{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+table.gestion th{background:var(--panel-2);text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);padding:10px 12px;border-bottom:1px solid var(--line);}
+table.gestion td{padding:6px 12px;border-bottom:1px solid var(--line);font-size:14px;}
+table.gestion tr:last-child td{border-bottom:none;}
+table.gestion input, table.gestion select{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:5px;font-size:13px;font-family:'IBM Plex Mono',monospace;}
+table.gestion .del-btn{background:none;border:none;color:#B34141;cursor:pointer;font-size:13px;}
+
+.add-form{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);margin-top:8px;}
+.add-form .filters-grid{margin-bottom:12px;}
+.io-row{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+.hint{color:var(--ink-soft);font-size:12px;margin:6px 0 18px;}
+.toast{
+  position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:12px 18px;border-radius:8px;
+  font-size:13px;box-shadow:var(--shadow);opacity:0;transform:translateY(8px);transition:.25s;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateY(0);}
+
+@media (max-width: 880px){
+  .shell{flex-direction:column;}
+  .building{width:100%;min-height:auto;position:relative;}
+  main{padding:18px;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="mark">BKBI</div>
+    <div class="tag">Répertoire des appartements — 11 étages</div>
+  </div>
+  <div id="syncStatus" style="font-size:11px;color:#B7BEC8;letter-spacing:.04em;"></div>
+  <div class="stats">
+    <div class="stat"><div class="num mono" id="statTotal">0</div><div class="lbl">Total</div></div>
+    <div class="stat"><div class="num mono" id="statDispo">0</div><div class="lbl">Disponibles</div></div>
+    <div class="stat"><div class="num mono" id="statVendu">0</div><div class="lbl">Vendus</div></div>
+  </div>
+</div>
+
+<div class="shell">
+  <aside class="building">
+    <h3>Immeuble — vue d'ensemble</h3>
+    <div id="buildingNav"></div>
+    <div class="legend">
+      <div><span class="dot sud"></span>Côté Sud (A / B)</div>
+      <div><span class="dot nord"></span>Côté Nord (C / D)</div>
+      <div><span class="dot vendu"></span>Vendu</div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="recherche">Recherche client</button>
+      <button class="tab-btn" data-tab="gestion">Gestion des prix</button>
+    </div>
+
+    <!-- ===== RECHERCHE ===== -->
+    <section id="tab-recherche">
+      <div class="filters">
+        <div class="filters-grid">
+          <div class="field">
+            <label>Étage</label>
+            <select id="fFloor"><option value="">Tous</option></select>
+          </div>
+          <div class="field">
+            <label>Côté</label>
+            <select id="fSide">
+              <option value="">Tous</option>
+              <option value="Sud">Sud</option>
+              <option value="Nord">Nord</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Typologie</label>
+            <select id="fTypo">
+              <option value="">Toutes</option>
+              <option value="F3">F3</option>
+              <option value="F4">F4</option>
+              <option value="F5">F5</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Statut</label>
+            <select id="fStatus">
+              <option value="">Tous</option>
+              <option value="disponible">Disponible</option>
+              <option value="vendu">Vendu</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Budget (DA)</label>
+            <div class="range-pair">
+              <input type="number" id="fPriceMin" placeholder="Min">
+              <input type="number" id="fPriceMax" placeholder="Max">
+            </div>
+          </div>
+          <div class="field">
+            <label>Surface (m²)</label>
+            <div class="range-pair">
+              <input type="number" id="fSurfMin" placeholder="Min">
+              <input type="number" id="fSurfMax" placeholder="Max">
+            </div>
+          </div>
+        </div>
+        <div class="filters-actions">
+          <button class="btn gold" id="btnFilter">Rechercher</button>
+          <button class="btn ghost" id="btnReset">Réinitialiser</button>
+        </div>
+      </div>
+
+      <div class="results-summary">
+        <span id="resultsCount">— résultats</span>
+        <span id="resultsHint"></span>
+      </div>
+      <div class="results-grid" id="resultsGrid"></div>
+    </section>
+
+    <!-- ===== GESTION ===== -->
+    <section id="tab-gestion" style="display:none;">
+      <p class="hint">Renseignez ici la surface et le prix fixe de chaque appartement (une seule fois). Les modifications sont enregistrées automatiquement dans ce navigateur. Utilisez « Exporter » pour garder une sauvegarde.</p>
+      <div id="gestionContainer"></div>
+
+      <div class="add-form">
+        <h3 style="margin:0 0 12px;font-size:15px;">Ajouter un appartement (ex : 8ème étage, ou logement oublié)</h3>
+        <div class="filters-grid">
+          <div class="field"><label>Étage</label><input type="number" id="addFloor" min="1" max="20"></div>
+          <div class="field"><label>Lettre</label>
+            <select id="addLetter"><option>A</option><option>B</option><option>C</option><option>D</option></select>
+          </div>
+          <div class="field"><label>Typologie</label>
+            <select id="addTypo"><option>F2</option><option>F3</option><option>F4</option><option>F5</option></select>
+          </div>
+          <div class="field"><label>Surface (m²)</label><input type="number" id="addSurface"></div>
+          <div class="field"><label>Prix (DA)</label><input type="number" id="addPrice"></div>
+        </div>
+        <button class="btn gold" id="btnAddUnit">Ajouter l'appartement</button>
+        <p class="hint" style="margin-top:8px;">Le côté (Nord/Sud) est déterminé automatiquement : A et B = Sud, C et D = Nord.</p>
+      </div>
+
+      <div class="io-row">
+        <button class="btn ghost" id="btnExport">Exporter la sauvegarde (JSON)</button>
+        <button class="btn ghost" id="btnImport">Importer une sauvegarde</button>
+        <input type="file" id="importFile" accept=".json" style="display:none;">
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------------------------------------------------
+   STRUCTURE DE BASE — telle que décrite pour la promotion BKBI
+   A, B = côté Sud  |  C, D = côté Nord
+   Le 8ème étage n'a pas été communiqué : pas d'unités par défaut.
+--------------------------------------------------------- */
+const SHELL = {
+  1: [['A','F4'],['B','F3'],['C','F4'],['D','F4']],
+  2: [['A','F4'],['B','F3'],['C','F4'],['D','F4']],
+  3: [['B','F3'],['C','F4'],['D','F4']],
+  4: [['B','F3'],['C','F4'],['D','F4']],
+  5: [['B','F3'],['C','F4'],['D','F4']],
+  6: [['A','F4'],['B','F3'],['C','F3'],['D','F3']],
+  7: [['A','F4'],['B','F3'],['C','F3'],['D','F3']],
+  8: [['A','F4'],['B','F3'],['C','F3'],['D','F3']],
+  9: [['A','F4'],['B','F3'],['C','F4']],
+  10:[['A','F5'],['B','F4']],
+  11:[['A','F4'],['B','F4']],
+};
+const BASE_FLOORS = [1,2,3,4,5,6,7,8,9,10,11]; // 8 affiché comme vide dans la nav
+let ALL_FLOORS = [...BASE_FLOORS];
+
+const LS_KEY = 'bkbi_units_v1';
+const LS_CUSTOM = 'bkbi_custom_v1';
+
+function sideOf(letter){ return (letter==='A'||letter==='B') ? 'Sud' : 'Nord'; }
+function apportRate(floor){ return floor <= 4 ? 0.45 : 0.40; }
+function fmt(n){ if(n===undefined||n===null||n==='' || isNaN(n)) return '—'; return Number(n).toLocaleString('fr-FR').replace(/,/g,' '); }
+
+/* ---------------------------------------------------------
+   PARTAGE ENTRE PLUSIEURS PERSONNES (Firebase Firestore)
+   1. Créez un projet gratuit sur https://console.firebase.google.com
+   2. Ajoutez une "application web", copiez la config fournie ci-dessous
+   3. Activez "Firestore Database" (mode production) dans la console
+   4. Collez vos identifiants ici. Tant que ce n'est pas fait,
+      l'outil continue de fonctionner en mode local (un seul appareil).
+--------------------------------------------------------- */
+const firebaseConfig = {
+  apiKey: "AIzaSyCXM6Je4lKUWeITsReuwWFpdLpv5jYWePg",
+  authDomain: "bkbi-336be.firebaseapp.com",
+  projectId: "bkbi-336be",
+  storageBucket: "bkbi-336be.firebasestorage.app",
+  messagingSenderId: "635527203653",
+  appId: "1:635527203653:web:6bb05588be8c0ae45d0c2c"
+};
+const FIREBASE_ENABLED = firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith('COLLEZ');
+
+let db = null, docRef = null;
+if (FIREBASE_ENABLED) {
+  try{
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    docRef = db.collection('bkbi').doc('data');
+  }catch(e){ console.error('Firebase init error', e); }
+}
+
+function loadStoreLocal(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }catch(e){ return {}; } }
+function saveStoreLocal(store){ localStorage.setItem(LS_KEY, JSON.stringify(store)); }
+function loadCustomLocal(){ try{ return JSON.parse(localStorage.getItem(LS_CUSTOM)) || []; }catch(e){ return []; } }
+function saveCustomLocal(list){ localStorage.setItem(LS_CUSTOM, JSON.stringify(list)); }
+
+let store = {};
+let customUnits = []; // [{floor,letter,typo}]
+
+function setSyncStatus(text, color){
+  const el = document.getElementById('syncStatus');
+  if(el){ el.textContent = text; el.style.color = color || '#B7BEC8'; }
+}
+
+function recomputeAllFloors(){
+  const s = new Set(BASE_FLOORS);
+  customUnits.forEach(cu=> s.add(cu.floor));
+  ALL_FLOORS = [...s].sort((a,b)=>a-b);
+}
+
+function onDataChange(){
+  recomputeAllFloors();
+  populateFloorFilter();
+  applyFilters();
+  if(document.getElementById('tab-gestion').style.display !== 'none') renderGestion();
+}
+
+function persist(){
+  if(FIREBASE_ENABLED && docRef){
+    setSyncStatus('Synchronisation…', '#B7BEC8');
+    docRef.set({ store, customUnits }).then(()=>{
+      setSyncStatus('🟢 Synchronisé avec l\'équipe', '#7FD7B0');
+    }).catch(err=>{
+      console.error(err);
+      setSyncStatus('🔴 Erreur de synchronisation', '#E39A9A');
+      toast('Erreur de synchronisation — vérifiez la connexion');
+    });
+  } else {
+    saveStoreLocal(store);
+    saveCustomLocal(customUnits);
+    setSyncStatus(FIREBASE_ENABLED ? '' : '⚪ Mode local (non partagé)', '#B7BEC8');
+  }
+}
+
+function initData(){
+  if(FIREBASE_ENABLED && docRef){
+    setSyncStatus('Connexion…', '#B7BEC8');
+    docRef.onSnapshot(snap=>{
+      const d = snap.data() || {};
+      store = d.store || {};
+      customUnits = d.customUnits || [];
+      setSyncStatus('🟢 Synchronisé avec l\'équipe', '#7FD7B0');
+      onDataChange();
+    }, err=>{
+      console.error(err);
+      setSyncStatus('🔴 Hors ligne', '#E39A9A');
+    });
+  } else {
+    store = loadStoreLocal();
+    customUnits = loadCustomLocal();
+    setSyncStatus('⚪ Mode local (non partagé — voir le code pour activer le partage)', '#B7BEC8');
+    onDataChange();
+  }
+}
+
+function buildUnits(){
+  const units = [];
+  ALL_FLOORS.forEach(floor=>{
+    const list = SHELL[floor] || [];
+    list.forEach(([letter,typo])=>{
+      const id = floor+letter;
+      const rec = store[id] || {};
+      units.push({
+        id, floor, letter, typo,
+        side: sideOf(letter),
+        surface: rec.surface ?? '',
+        price: rec.price ?? '',
+        status: rec.status || 'disponible'
+      });
+    });
+  });
+  customUnits.forEach(cu=>{
+    const id = cu.floor+cu.letter+'-'+cu.typo;
+    const rec = store[id] || {};
+    units.push({
+      id, floor: cu.floor, letter: cu.letter, typo: cu.typo,
+      side: sideOf(cu.letter),
+      surface: rec.surface ?? cu.surface ?? '',
+      price: rec.price ?? cu.price ?? '',
+      status: rec.status || 'disponible',
+      custom:true
+    });
+  });
+  units.sort((a,b)=> a.floor-b.floor || a.letter.localeCompare(b.letter));
+  return units;
+}
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+/* ---------------- Building nav (signature) ---------------- */
+function renderBuildingNav(units){
+  const el = document.getElementById('buildingNav');
+  el.innerHTML = '';
+  [...ALL_FLOORS].reverse().forEach(floor=>{
+    const floorUnits = units.filter(u=>u.floor===floor);
+    const row = document.createElement('div');
+    row.className='floor-row';
+    row.dataset.floor = floor;
+    if(floorUnits.length===0){
+      row.innerHTML = `<span class="floor-num">${floor}</span><span class="floor-empty">non communiqué</span>`;
+    } else {
+      const dots = floorUnits.map(u=>{
+        const cls = u.status==='vendu' ? 'vendu' : (u.side==='Sud'?'sud':'nord');
+        return `<span class="dot ${cls}" title="${u.letter} · ${u.typo} · ${u.side}"></span>`;
+      }).join('');
+      row.innerHTML = `<span class="floor-num">${floor}</span><span class="floor-dots">${dots}</span>`;
+    }
+    row.addEventListener('click', ()=>{
+      document.querySelectorAll('.floor-row').forEach(r=>r.classList.remove('active'));
+      row.classList.add('active');
+      document.getElementById('fFloor').value = floor;
+      switchTab('recherche');
+      applyFilters();
+    });
+    el.appendChild(row);
+  });
+}
+
+/* ---------------- Filters ---------------- */
+function populateFloorFilter(){
+  const sel = document.getElementById('fFloor');
+  sel.innerHTML = '<option value="">Tous</option>' + ALL_FLOORS.map(f=>`<option value="${f}">Étage ${f}</option>`).join('');
+}
+
+function applyFilters(){
+  const units = buildUnits();
+  const floor = document.getElementById('fFloor').value;
+  const side = document.getElementById('fSide').value;
+  const typo = document.getElementById('fTypo').value;
+  const status = document.getElementById('fStatus').value;
+  const pMin = parseFloat(document.getElementById('fPriceMin').value);
+  const pMax = parseFloat(document.getElementById('fPriceMax').value);
+  const sMin = parseFloat(document.getElementById('fSurfMin').value);
+  const sMax = parseFloat(document.getElementById('fSurfMax').value);
+
+  const filtered = units.filter(u=>{
+    if(floor && String(u.floor)!==String(floor)) return false;
+    if(side && u.side!==side) return false;
+    if(typo && u.typo!==typo) return false;
+    if(status && u.status!==status) return false;
+    if(!isNaN(pMin) && (u.price==='' || Number(u.price) < pMin)) return false;
+    if(!isNaN(pMax) && (u.price==='' || Number(u.price) > pMax)) return false;
+    if(!isNaN(sMin) && (u.surface==='' || Number(u.surface) < sMin)) return false;
+    if(!isNaN(sMax) && (u.surface==='' || Number(u.surface) > sMax)) return false;
+    return true;
+  });
+
+  renderResults(filtered);
+  renderStats(units);
+  renderBuildingNav(units);
+}
+
+function resetFilters(){
+  ['fFloor','fSide','fTypo','fStatus','fPriceMin','fPriceMax','fSurfMin','fSurfMax'].forEach(id=>document.getElementById(id).value='');
+  applyFilters();
+}
+
+/* ---------------- Results ---------------- */
+function renderResults(list){
+  const grid = document.getElementById('resultsGrid');
+  document.getElementById('resultsCount').textContent = list.length + (list.length>1 ? ' résultats' : ' résultat');
+  grid.innerHTML='';
+  if(list.length===0){
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+      <h3>Aucun appartement ne correspond</h3>
+      <p>Essayez d'élargir le budget ou la surface, ou vérifiez que les prix ont bien été saisis dans « Gestion des prix ».</p>
+    </div>`;
+    return;
+  }
+  list.forEach(u=>{
+    const price = Number(u.price)||0;
+    const rate = apportRate(u.floor);
+    const apport = price ? Math.round(price*rate) : 0;
+    const reste = price ? price-apport : 0;
+    const card = document.createElement('div');
+    card.className = 'card' + (u.status==='vendu' ? ' vendu' : '');
+    card.innerHTML = `
+      <div class="card-head">
+        <div>
+          <div class="floor-badge">ÉTAGE ${u.floor}</div>
+          <div class="unit-name">${u.typo} — ${u.letter}</div>
+        </div>
+        <span class="side-tag ${u.side==='Sud'?'sud':'nord'}">${u.side}</span>
+      </div>
+      <div class="card-body">
+        <div class="row-line"><span class="k">Surface</span><span class="v">${u.surface!=='' ? u.surface+' m²' : '—'}</span></div>
+        <div class="price-big">${price ? fmt(price)+' DA' : 'Prix non saisi'}</div>
+        <div class="apport-box">
+          <div class="row-line"><span class="k">Apport initial (${Math.round(rate*100)}%)</span><span class="v">${fmt(apport)} DA</span></div>
+          <div class="row-line"><span class="k">Reste à payer</span><span class="v">${fmt(reste)} DA</span></div>
+        </div>
+        <span class="status-pill ${u.status}">${u.status==='vendu' ? 'Vendu' : 'Disponible'}</span>
+      </div>
+      <div class="card-foot">
+        <button class="btn ghost small" data-copy="${u.id}">Copier la fiche</button>
+      </div>
+    `;
+    card.querySelector('[data-copy]').addEventListener('click', ()=>{
+      const text = `BKBI — Étage ${u.floor}, Appartement ${u.letter} (${u.typo}), côté ${u.side}\nSurface : ${u.surface||'—'} m²\nPrix : ${price?fmt(price)+' DA':'—'}\nApport initial (${Math.round(rate*100)}%) : ${fmt(apport)} DA\nReste à payer : ${fmt(reste)} DA\nStatut : ${u.status==='vendu'?'Vendu':'Disponible'}`;
+      navigator.clipboard.writeText(text).then(()=>toast('Fiche copiée dans le presse-papiers'));
+    });
+    grid.appendChild(card);
+  });
+}
+
+function renderStats(units){
+  document.getElementById('statTotal').textContent = units.length;
+  document.getElementById('statDispo').textContent = units.filter(u=>u.status!=='vendu').length;
+  document.getElementById('statVendu').textContent = units.filter(u=>u.status==='vendu').length;
+}
+
+/* ---------------- Gestion ---------------- */
+function renderGestion(){
+  const units = buildUnits();
+  const container = document.getElementById('gestionContainer');
+  container.innerHTML = '';
+  ALL_FLOORS.forEach(floor=>{
+    const list = units.filter(u=>u.floor===floor);
+    if(list.length===0) return;
+    const rate = Math.round(apportRate(floor)*100);
+    const twinNote = (floor===7 || floor===8) ? ' <span class="apport-tag">Étages 7 et 8 identiques</span>' : '';
+    const wrap = document.createElement('div');
+    wrap.className='gestion-floor';
+    wrap.innerHTML = `<h3>Étage ${floor} <span class="apport-tag">Apport initial : ${rate}%</span>${twinNote}</h3>`;
+    const table = document.createElement('table');
+    table.className='gestion';
+    table.innerHTML = `<thead><tr>
+      <th style="width:60px;">Appt</th><th style="width:70px;">Type</th><th style="width:70px;">Côté</th>
+      <th>Surface (m²)</th><th>Prix (DA)</th><th style="width:130px;">Statut</th><th style="width:36px;"></th>
+    </tr></thead><tbody></tbody>`;
+    const tbody = table.querySelector('tbody');
+    list.forEach(u=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${u.letter}</strong></td>
+        <td>${u.typo}</td>
+        <td>${u.side}</td>
+        <td><input type="number" value="${u.surface}" data-id="${u.id}" data-field="surface"></td>
+        <td><input type="number" value="${u.price}" data-id="${u.id}" data-field="price"></td>
+        <td>
+          <select data-id="${u.id}" data-field="status">
+            <option value="disponible" ${u.status==='disponible'?'selected':''}>Disponible</option>
+            <option value="vendu" ${u.status==='vendu'?'selected':''}>Vendu</option>
+          </select>
+        </td>
+        <td>${u.custom ? `<button class="del-btn" data-del="${u.id}" title="Supprimer">✕</button>` : ''}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    wrap.appendChild(table);
+    container.appendChild(wrap);
+  });
+
+  container.querySelectorAll('input,select').forEach(inp=>{
+    inp.addEventListener('change', e=>{
+      const id = e.target.dataset.id, field = e.target.dataset.field;
+      if(!store[id]) store[id] = {};
+      store[id][field] = e.target.value;
+      persist();
+      toast('Enregistré');
+      applyFilters();
+    });
+  });
+  container.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const id = e.target.dataset.del;
+      const [floorLetter, typo] = id.split('-');
+      const floor = parseInt(floorLetter);
+      const letter = floorLetter.replace(String(floor),'');
+      customUnits = customUnits.filter(cu=> !(cu.floor===floor && cu.letter===letter && cu.typo===typo));
+      delete store[id];
+      persist();
+      renderGestion();
+      applyFilters();
+      toast('Appartement supprimé');
+    });
+  });
+}
+
+/* ---------------- Add custom unit ---------------- */
+document.getElementById('btnAddUnit').addEventListener('click', ()=>{
+  const floor = parseInt(document.getElementById('addFloor').value);
+  const letter = document.getElementById('addLetter').value;
+  const typo = document.getElementById('addTypo').value;
+  const surface = document.getElementById('addSurface').value;
+  const price = document.getElementById('addPrice').value;
+  if(!floor){ toast('Indiquez un étage'); return; }
+  customUnits.push({floor, letter, typo, surface, price});
+  const id = floor+letter+'-'+typo;
+  store[id] = {surface, price, status:'disponible'};
+  persist();
+  recomputeAllFloors();
+  populateFloorFilter();
+  document.getElementById('addFloor').value='';
+  document.getElementById('addSurface').value='';
+  document.getElementById('addPrice').value='';
+  renderGestion();
+  applyFilters();
+  toast('Appartement ajouté');
+});
+
+/* ---------------- Export / Import ---------------- */
+document.getElementById('btnExport').addEventListener('click', ()=>{
+  const data = { store, customUnits };
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'bkbi_sauvegarde_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+});
+document.getElementById('btnImport').addEventListener('click', ()=> document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const data = JSON.parse(reader.result);
+      store = data.store || {};
+      customUnits = data.customUnits || [];
+      persist();
+      recomputeAllFloors(); populateFloorFilter();
+      renderGestion(); applyFilters();
+      toast('Sauvegarde importée');
+    }catch(err){ toast('Fichier invalide'); }
+  };
+  reader.readAsText(file);
+});
+
+/* ---------------- Tabs ---------------- */
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+  document.getElementById('tab-recherche').style.display = name==='recherche' ? '' : 'none';
+  document.getElementById('tab-gestion').style.display = name==='gestion' ? '' : 'none';
+  if(name==='gestion') renderGestion();
+}
+document.querySelectorAll('.tab-btn').forEach(b=> b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
+
+/* ---------------- Wire filters ---------------- */
+document.getElementById('btnFilter').addEventListener('click', applyFilters);
+document.getElementById('btnReset').addEventListener('click', resetFilters);
+['fFloor','fSide','fTypo','fStatus'].forEach(id=>document.getElementById(id).addEventListener('change', applyFilters));
+
+/* ---------------- Init ---------------- */
+populateFloorFilter();
+initData();
+</script>
+</body>
+</html>

@@ -345,7 +345,7 @@ function fmt(n){ if(n===undefined||n===null||n==='' || isNaN(n)) return '—'; r
 /* ---------------------------------------------------------
    SYNCHRONISATION SUPABASE
    Projet Supabase fourni par l'utilisateur.
-   Créez une table `BKBI-data` avec une ligne `id='data'` et une colonne `payload` JSONB.
+   Créez une table `BKBI-data` avec une ligne `id='data'` et une colonne `content` JSONB.
 --------------------------------------------------------- */
 const SUPABASE_URL = 'https://ebxxxigzpyabdexwnoqp.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_6c9qGdR9QvOn75y6NmzNiA_-2w5dUcY';
@@ -391,7 +391,7 @@ function persist(){
     setSyncStatus('Synchronisation…', '#B7BEC8');
     supabaseClient
       .from(BKBI_TABLE)
-      .upsert({ id: BKBI_ROW, payload: { store, customUnits } }, { onConflict: 'id' })
+      .upsert({ id: BKBI_ROW, content: { store, customUnits } }, { onConflict: 'id' })
       .then(({ error })=>{
         if(error){ throw error; }
         setSyncStatus('🟢 Synchronisé avec Supabase', '#7FD7B0');
@@ -419,7 +419,7 @@ async function initData(){
   if(SUPABASE_ENABLED && supabaseClient){
     const { data, error } = await supabaseClient
       .from(BKBI_TABLE)
-      .select('payload')
+      .select('content')
       .eq('id', BKBI_ROW)
       .maybeSingle();
 
@@ -432,9 +432,9 @@ async function initData(){
       return;
     }
 
-    if(data && data.payload){
-      store = data.payload.store || {};
-      customUnits = data.payload.customUnits || [];
+    if(data && data.content){
+      store = data.content.store || {};
+      customUnits = data.content.customUnits || [];
     } else {
       store = {};
       customUnits = [];

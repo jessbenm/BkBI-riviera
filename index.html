@@ -280,6 +280,7 @@ table.gestion .del-btn{background:none;border:none;color:#B34141;cursor:pointer;
       </div>
 
       <div class="io-row">
+        <button class="btn gold" id="btnRecover">Récupérer mes anciens prix (sur cet appareil)</button>
         <button class="btn ghost" id="btnExport">Exporter la sauvegarde (JSON)</button>
         <button class="btn ghost" id="btnImport">Importer une sauvegarde</button>
         <input type="file" id="importFile" accept=".json" style="display:none;">
@@ -373,19 +374,19 @@ function onDataChange(){
 }
 
 function persist(){
+  saveStoreLocal(store);
+  saveCustomLocal(customUnits);
   if(FIREBASE_ENABLED && docRef){
     setSyncStatus('Synchronisation…', '#B7BEC8');
     docRef.set({ store, customUnits }).then(()=>{
       setSyncStatus('🟢 Synchronisé avec l\'équipe', '#7FD7B0');
     }).catch(err=>{
       console.error(err);
-      setSyncStatus('🔴 Erreur de synchronisation', '#E39A9A');
-      toast('Erreur de synchronisation — vérifiez la connexion');
+      setSyncStatus('🔴 Non synchronisé — copie gardée sur cet appareil', '#E39A9A');
+      toast('Non synchronisé (sauvegardé localement en attendant)');
     });
   } else {
-    saveStoreLocal(store);
-    saveCustomLocal(customUnits);
-    setSyncStatus(FIREBASE_ENABLED ? '' : '⚪ Mode local (non partagé)', '#B7BEC8');
+    setSyncStatus('⚪ Mode local (non partagé)', '#B7BEC8');
   }
 }
 
@@ -396,11 +397,16 @@ function initData(){
       const d = snap.data() || {};
       store = d.store || {};
       customUnits = d.customUnits || [];
+      saveStoreLocal(store);
+      saveCustomLocal(customUnits);
       setSyncStatus('🟢 Synchronisé avec l\'équipe', '#7FD7B0');
       onDataChange();
     }, err=>{
       console.error(err);
-      setSyncStatus('🔴 Hors ligne', '#E39A9A');
+      store = loadStoreLocal();
+      customUnits = loadCustomLocal();
+      setSyncStatus('🔴 Hors ligne — copie locale affichée', '#E39A9A');
+      onDataChange();
     });
   } else {
     store = loadStoreLocal();
@@ -658,6 +664,31 @@ document.getElementById('btnAddUnit').addEventListener('click', ()=>{
   renderGestion();
   applyFilters();
   toast('Appartement ajouté');
+});
+
+/* ---------------- Récupération des anciennes données locales ---------------- */
+document.getElementById('btnRecover').addEventListener('click', ()=>{
+  const localStore = loadStoreLocal();
+  const localCustom = loadCustomLocal();
+  const nbLocal = Object.keys(localStore).length;
+  if(nbLocal===0 && localCustom.length===0){
+    toast('Aucune ancienne donnée trouvée sur cet appareil');
+    return;
+  }
+  Object.keys(localStore).forEach(id=>{
+    store[id] = Object.assign({}, store[id]||{}, localStore[id]);
+  });
+  localCustom.forEach(cu=>{
+    if(!customUnits.some(x=>x.floor===cu.floor && x.letter===cu.letter && x.typo===cu.typo)){
+      customUnits.push(cu);
+    }
+  });
+  persist();
+  recomputeAllFloors();
+  populateFloorFilter();
+  renderGestion();
+  applyFilters();
+  toast(nbLocal + ' appartement(s) récupéré(s) et synchronisé(s) !');
 });
 
 /* ---------------- Export / Import ---------------- */

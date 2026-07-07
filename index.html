@@ -203,9 +203,23 @@ table.gestion .del-btn{background:none;border:none;color:#B34141;cursor:pointer;
   </aside>
 
   <main>
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="recherche">Recherche client</button>
-      <button class="tab-btn" data-tab="gestion">Gestion des prix</button>
+    <div class="tabs" style="align-items:center;justify-content:space-between;">
+      <div>
+        <button class="tab-btn active" data-tab="recherche">Recherche client</button>
+        <button class="tab-btn" data-tab="gestion">Gestion des prix</button>
+      </div>
+      <button class="btn ghost small" id="btnShowHistory">Historique des clients</button>
+    </div>
+
+    <div class="history-panel" id="historyPanel" style="display:none;position:relative;top:0;margin-bottom:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;">
+        <div>
+          <h3 style="margin:0;font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:#1F2937;">Historique des clients</h3>
+          <div style="font-size:13px;color:#6B7280;margin-top:4px;">Clients retirés après passage à disponible</div>
+        </div>
+        <button class="btn ghost" id="btnCloseHistory">Fermer</button>
+      </div>
+      <div id="historyList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;"></div>
     </div>
 
     <div class="client-panel" id="clientPanel" style="display:none;position:relative;top:0;">
@@ -369,6 +383,7 @@ const SUPABASE_ENABLED = SUPABASE_URL && SUPABASE_KEY;
 let supabaseClient = null;
 let store = {};
 let customUnits = []; // [{floor,letter,typo}]
+let historyClients = [];
 
 /* ---------------------------------------------------------
    CORRECTIF : ce verrou empêche persist() d'envoyer quoi que
@@ -393,6 +408,7 @@ function onDataChange(){
   populateFloorFilter();
   applyFilters();
   if(document.getElementById('tab-gestion').style.display !== 'none') renderGestion();
+  renderHistoryPanel();
 }
 
 function persist(){
@@ -404,7 +420,7 @@ function persist(){
     setSyncStatus('Synchronisation…', '#B7BEC8');
     supabaseClient
       .from(BKBI_TABLE)
-      .upsert({ id: BKBI_ROW, content: { store, customUnits } }, { onConflict: 'id' })
+      .upsert({ id: BKBI_ROW, content: { store, customUnits, historyClients } }, { onConflict: 'id' })
       .then(({ error })=>{
         if(error){ throw error; }
         setSyncStatus('🟢 Synchronisé avec Supabase', '#7FD7B0');
@@ -448,9 +464,11 @@ async function initData(){
     if(data && data.content){
       store = data.content.store || {};
       customUnits = data.content.customUnits || [];
+      historyClients = data.content.historyClients || [];
     } else {
       store = {};
       customUnits = [];
+      historyClients = [];
     }
     initialSyncDone = true;
     setSyncStatus('🟢 Synchronisé avec Supabase', '#7FD7B0');
@@ -606,7 +624,7 @@ function renderResults(list){
         <span class="status-pill ${u.status}">${u.status==='vendu' ? 'Vendu' : 'Disponible'}</span>
       </div>
       <div class="card-foot">
-        <button class="btn ghost small" data-client="${u.id}">${u.status==='vendu' ? 'Client' : 'Vendre'}</button>
+        <button class="btn ghost small" data-client="${u.id}">Client</button>
         <button class="btn ghost small" data-copy="${u.id}">Copier la fiche</button>
       </div>
     `;
@@ -662,7 +680,6 @@ function saveClientPanel(){
     credit: document.getElementById('clientCredit').value,
   };
   store[id].client = client;
-  store[id].lastClient = client;
   store[id].status = 'vendu';
   persist();
   applyFilters();
@@ -849,8 +866,7 @@ function renderGestion(){
     const tbody = table.querySelector('tbody');
     list.forEach(u=>{
       const client = (store[u.id] && store[u.id].client) ? store[u.id].client : null;
-      const history = store[u.id] && (store[u.id].client || store[u.id].lastClient);
-      const clientLabel = history ? 'Historique client' : 'Client';
+      const clientLabel = 'Client';
       const clientButton = `<button class="btn ghost small" data-client="${u.id}">${clientLabel}</button>`;
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -878,13 +894,25 @@ function renderGestion(){
     inp.addEventListener('change', e=>{
       const id = e.target.dataset.id, field = e.target.dataset.field;
       if(!store[id]) store[id] = {};
+      const prevStatus = store[id].status;
       store[id][field] = e.target.value;
-      if(field==='status' && e.target.value==='disponible' && store[id].client){
-        store[id].lastClient = store[id].client;
+      if(field==='status' && prevStatus==='vendu' && e.target.value==='disponible' && store[id].client){
+        const unit = buildUnits().find(u=>u.id===id) || {};
+        const client = store[id].client;
+        historyClients.push({
+          id,
+          appartement: unit.letter || '',
+          typologie: unit.typo || store[id].typo || '',
+          etage: unit.floor || '',
+          removedAt: new Date().toISOString(),
+          client
+        });
+        delete store[id].client;
       }
       persist();
       toast('Enregistré');
       applyFilters();
+      renderHistoryPanel();
     });
   });
   container.querySelectorAll('[data-client]').forEach(btn=>{
@@ -908,6 +936,43 @@ function renderGestion(){
       toast('Appartement supprimé');
     });
   });
+}
+
+function renderHistoryPanel(){
+  const panel = document.getElementById('historyPanel');
+  const list = document.getElementById('historyList');
+  if(!panel || !list) return;
+  if(historyClients.length === 0){
+    list.innerHTML = `<div class="empty-state" style="padding:28px;grid-column:1/-1;">Aucun client dans l'historique pour le moment.</div>`;
+    return;
+  }
+  const cards = historyClients
+    .slice()
+    .sort((a,b)=> new Date(b.removedAt) - new Date(a.removedAt))
+    .map(entry => {
+      const client = entry.client || {};
+      const date = new Date(entry.removedAt).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
+      return `
+        <div class="card" style="padding:18px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;">
+            <div>
+              <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#6B7280;margin-bottom:8px;">${entry.appartement || '—'} · ${entry.typologie || '—'}</div>
+              <div style="font-size:15px;font-weight:700;color:#111827;">${client.name || '—'} ${client.firstName || ''}</div>
+            </div>
+            <div style="font-size:12px;color:#6B7280;text-align:right;">${date}</div>
+          </div>
+          <div style="font-size:13px;color:#374151;line-height:1.6;">
+            <div><strong>Téléphone :</strong> ${client.phone || '—'}</div>
+            <div><strong>Budget :</strong> ${client.budget ? client.budget + ' DA' : '—'}</div>
+            <div><strong>Surface demandée :</strong> ${client.surface ? client.surface + ' m²' : '—'}</div>
+            <div><strong>Appartement :</strong> ${entry.appartement || '—'}</div>
+            <div><strong>Étage :</strong> ${entry.etage || '—'}</div>
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+  list.innerHTML = cards;
 }
 
 /* ---------------- Add custom unit ---------------- */
@@ -934,7 +999,7 @@ document.getElementById('btnAddUnit').addEventListener('click', ()=>{
 
 /* ---------------- Export / Import ---------------- */
 document.getElementById('btnExport').addEventListener('click', ()=>{
-  const data = { store, customUnits };
+  const data = { store, customUnits, historyClients };
   const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -951,6 +1016,7 @@ document.getElementById('importFile').addEventListener('change', e=>{
       const data = JSON.parse(reader.result);
       store = data.store || {};
       customUnits = data.customUnits || [];
+      historyClients = data.historyClients || [];
       persist();
       recomputeAllFloors(); populateFloorFilter();
       renderGestion(); applyFilters();
@@ -972,6 +1038,14 @@ document.getElementById('btnSaveClient').addEventListener('click', saveClientPan
 document.getElementById('btnCloseClient').addEventListener('click', closeClientPanel);
 document.getElementById('btnPrintClient').addEventListener('click', printClientPanel);
 document.getElementById('btnDownloadClient').addEventListener('click', downloadClientPanel);
+document.getElementById('btnShowHistory').addEventListener('click', ()=>{
+  document.getElementById('historyPanel').style.display = 'block';
+  renderHistoryPanel();
+  document.getElementById('historyPanel').scrollIntoView({behavior:'smooth', block:'start'});
+});
+document.getElementById('btnCloseHistory').addEventListener('click', ()=>{
+  document.getElementById('historyPanel').style.display = 'none';
+});
 
 /* ---------------- Wire filters ---------------- */
 document.getElementById('btnFilter').addEventListener('click', applyFilters);

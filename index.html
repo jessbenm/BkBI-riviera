@@ -622,7 +622,7 @@ function renderResults(list){
 function openClientPanel(unit){
   const panel = document.getElementById('clientPanel');
   const rec = store[unit.id] || {};
-  const client = rec.client || {};
+  const client = rec.client || rec.lastClient || {};
   document.getElementById('clientName').value = client.name || '';
   document.getElementById('clientFirstName').value = client.firstName || '';
   document.getElementById('clientPhone').value = client.phone || '';
@@ -662,6 +662,7 @@ function saveClientPanel(){
     credit: document.getElementById('clientCredit').value,
   };
   store[id].client = client;
+  store[id].lastClient = client;
   store[id].status = 'vendu';
   persist();
   applyFilters();
@@ -848,7 +849,8 @@ function renderGestion(){
     const tbody = table.querySelector('tbody');
     list.forEach(u=>{
       const client = (store[u.id] && store[u.id].client) ? store[u.id].client : null;
-      const clientLabel = client ? 'Voir client' : 'Client';
+      const history = store[u.id] && (store[u.id].client || store[u.id].lastClient);
+      const clientLabel = history ? 'Historique client' : 'Client';
       const clientButton = `<button class="btn ghost small" data-client="${u.id}">${clientLabel}</button>`;
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -877,6 +879,9 @@ function renderGestion(){
       const id = e.target.dataset.id, field = e.target.dataset.field;
       if(!store[id]) store[id] = {};
       store[id][field] = e.target.value;
+      if(field==='status' && e.target.value==='disponible' && store[id].client){
+        store[id].lastClient = store[id].client;
+      }
       persist();
       toast('Enregistré');
       applyFilters();

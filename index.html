@@ -22,9 +22,15 @@
   --nord-soft: #DCE6EF;
   --dispo: #1E7F5C;
   --dispo-soft: #DEEFE7;
-  --vendu: #97A0AC;
-  --vendu-soft: #E7E9EC;
+  --reserve: #C98A2E;
+  --reserve-soft: #F6E8D3;
+  --confirme: #1F6F78;
+  --confirme-soft: #DCEEEF;
+  --vendu: #4C6A57;
+  --vendu-soft: #E1EFE6;
   --gold: #A9822B;
+  --err: #B34141;
+  --err-soft: #F7E4E4;
   --radius: 10px;
   --shadow: 0 1px 2px rgba(23,27,33,.06), 0 8px 24px rgba(23,27,33,.06);
 }
@@ -65,6 +71,8 @@ h1,h2,h3,.display{font-family:'Oswald',sans-serif;letter-spacing:.02em;text-tran
 .dot{width:9px;height:9px;border-radius:50%;border:1.5px solid transparent;}
 .dot.sud{background:var(--sud);}
 .dot.nord{background:var(--nord);}
+.dot.reserve{background:transparent;border-color:var(--reserve);}
+.dot.confirme{background:transparent;border-color:var(--confirme);}
 .dot.vendu{background:transparent;border-color:#5B6472;}
 .floor-empty{font-size:10px;color:#6E7686;font-style:italic;padding:4px 8px;}
 .legend{margin-top:16px;font-size:11px;color:#B7BEC8;line-height:1.9;border-top:1px solid rgba(255,255,255,.12);padding-top:12px;}
@@ -93,7 +101,7 @@ main{flex:1;min-width:0;padding:24px 28px 60px;}
   font-size:14px;background:#fff;color:var(--ink);
 }
 .range-pair{display:flex;gap:6px;}
-.filters-actions{display:flex;gap:10px;margin-top:16px;}
+.filters-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
 .btn{
   padding:9px 18px;border-radius:6px;border:1px solid var(--ink);background:var(--ink);color:#fff;
   font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;
@@ -101,6 +109,8 @@ main{flex:1;min-width:0;padding:24px 28px 60px;}
 .btn.ghost{background:transparent;color:var(--ink);}
 .btn.gold{background:var(--gold);border-color:var(--gold);}
 .btn.small{padding:6px 12px;font-size:11px;}
+.btn.danger{color:var(--err);border-color:#E3B9B9;background:transparent;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
 
 .results-summary{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;color:var(--ink-soft);font-size:13px;}
 
@@ -110,7 +120,9 @@ main{flex:1;min-width:0;padding:24px 28px 60px;}
   background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
   box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;
 }
-.card.vendu{background:#E9F4FF;border-color:#B8DDF1;}
+.card.reserve{background:var(--reserve-soft);border-color:#E7C98F;}
+.card.confirme{background:var(--confirme-soft);border-color:#A9CFD3;}
+.card.vendu{background:var(--vendu-soft);border-color:#B7D2C2;}
 .card-head{
   display:flex;justify-content:space-between;align-items:center;padding:12px 16px;
   background:var(--panel-2);border-bottom:1px solid var(--line);
@@ -122,20 +134,21 @@ main{flex:1;min-width:0;padding:24px 28px 60px;}
 }
 .side-tag.sud{background:var(--sud-soft);color:var(--sud);}
 .side-tag.nord{background:var(--nord-soft);color:var(--nord);}
+.side-tag.parking{background:#EDEBF7;color:#5B4E9E;}
 .card-body{padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:10px;}
 .row-line{display:flex;justify-content:space-between;font-size:13px;}
 .row-line .k{color:var(--ink-soft);}
 .row-line .v{font-family:'IBM Plex Mono',monospace;font-weight:600;}
 .price-big{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;margin:2px 0;}
-.apport-box{background:var(--panel-2);border-radius:8px;padding:10px 12px;font-size:12px;display:flex;flex-direction:column;gap:4px;}
+.apport-box{background:rgba(255,255,255,.6);border-radius:8px;padding:10px 12px;font-size:12px;display:flex;flex-direction:column;gap:4px;}
 .apport-box .row-line{font-size:12px;}
 .status-pill{align-self:flex-start;font-size:10px;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
 .status-pill.disponible{background:var(--dispo-soft);color:var(--dispo);}
+.status-pill.reserve{background:var(--reserve-soft);color:var(--reserve);}
+.status-pill.confirme{background:var(--confirme-soft);color:var(--confirme);}
 .status-pill.vendu{background:var(--vendu-soft);color:var(--vendu);}
-.card.vendu{background:#E8F5E9;border-color:#B7DBC4;}
-.client-panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:18px;box-shadow:var(--shadow);}
-.client-panel .field label{margin-top:0;}
-.card-foot{padding:10px 16px;border-top:1px solid var(--line);display:flex;gap:8px;}
+.client-tag{font-size:11px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
+.card-foot{padding:10px 16px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;}
 .empty-state{padding:60px 20px;text-align:center;color:var(--ink-soft);}
 .empty-state h3{color:var(--ink);}
 
@@ -150,15 +163,6 @@ table.gestion tr:last-child td{border-bottom:none;}
 table.gestion input, table.gestion select{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:5px;font-size:13px;font-family:'IBM Plex Mono',monospace;}
 table.gestion .del-btn{background:none;border:none;color:#B34141;cursor:pointer;font-size:13px;}
 
-.client-panel{background:#FEFEFE;border:1px solid #E9EDF3;border-radius:22px;padding:30px;max-width:900px;margin:0 auto 24px;box-shadow:0 32px 80px rgba(15,23,42,.12);}
-.client-panel h3{margin:0 0 18px;font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:#1F2937;}
-.client-panel .filters-grid{grid-template-columns:repeat(2,minmax(220px,1fr));gap:18px;}
-.client-panel .field{background:#F8FAFC;border:1px solid #E5E7EB;border-radius:14px;padding:12px;}
-.client-panel .field label{margin-bottom:6px;color:#4B5563;}
-.client-panel .field input,
-.client-panel .field select{border:1px solid #D1D5DB;background:#fff;border-radius:10px;padding:10px 12px;}
-.client-panel .filters-actions{justify-content:flex-end;gap:12px;}
-
 .add-form{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);margin-top:8px;}
 .add-form .filters-grid{margin-bottom:12px;}
 .io-row{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
@@ -166,13 +170,59 @@ table.gestion .del-btn{background:none;border:none;color:#B34141;cursor:pointer;
 .toast{
   position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:12px 18px;border-radius:8px;
   font-size:13px;box-shadow:var(--shadow);opacity:0;transform:translateY(8px);transition:.25s;pointer-events:none;
+  z-index:200;max-width:420px;
 }
 .toast.show{opacity:1;transform:translateY(0);}
+.toast.err{background:var(--err);}
+
+.section-heading{display:flex;align-items:center;justify-content:space-between;margin:30px 0 14px;}
+.section-heading h3{margin:0;font-size:15px;}
+
+/* ---------- Modal (fiche client 3 étapes) ---------- */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(15,18,23,.5);z-index:150;
+  align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;
+}
+.modal-overlay.show{display:flex;}
+.modal-panel{
+  background:var(--panel);border-radius:16px;max-width:760px;width:100%;
+  box-shadow:0 30px 80px rgba(0,0,0,.35);padding:26px 28px 22px;
+}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:12px;}
+.modal-eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);margin-bottom:4px;}
+.modal-head h3{margin:0;font-size:19px;}
+.stepper{display:flex;gap:6px;margin-bottom:20px;border-bottom:1px solid var(--line);}
+.step-btn{
+  flex:1;background:none;border:none;padding:10px 8px;font-family:'Oswald',sans-serif;font-size:12.5px;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);cursor:pointer;
+  border-bottom:3px solid transparent;text-align:center;
+}
+.step-btn.active{color:var(--ink);border-bottom-color:var(--gold);}
+.step-btn:disabled{color:#C6CBD2;cursor:not-allowed;}
+.step-view{display:none;}
+.step-view.show{display:block;}
+.summary-box{background:var(--panel-2);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.summary-box .s-item .k{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;}
+.summary-box .s-item .v{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:15px;}
+.summary-box .s-item.big .v{font-size:20px;}
+.tranche-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.tranche-row{display:flex;align-items:center;gap:10px;background:var(--panel-2);border-radius:8px;padding:8px 12px;font-size:13px;}
+.tranche-row .tr-label{flex:1;font-weight:600;}
+.tranche-row .tr-date{color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
+.tranche-row .tr-amount{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+.tranche-row .tr-del{background:none;border:none;color:var(--err);cursor:pointer;font-size:13px;}
+.add-tranche-row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px;}
+.add-tranche-row .field{flex:1;min-width:120px;}
+.notary-banner{background:var(--dispo-soft);color:var(--dispo);border-radius:10px;padding:14px 16px;font-size:13.5px;margin-bottom:16px;font-weight:600;}
+.checkbox-row{display:flex;align-items:center;gap:8px;font-size:13px;margin:10px 0;}
+.checkbox-row input{width:auto;}
+.modal-danger-zone{border-top:1px solid var(--line);margin-top:18px;padding-top:14px;display:flex;justify-content:flex-end;}
 
 @media (max-width: 880px){
   .shell{flex-direction:column;}
   .building{width:100%;min-height:auto;position:relative;}
   main{padding:18px;}
+  .summary-box{grid-template-columns:1fr 1fr;}
 }
 </style>
 </head>
@@ -187,6 +237,7 @@ table.gestion .del-btn{background:none;border:none;color:#B34141;cursor:pointer;
   <div class="stats">
     <div class="stat"><div class="num mono" id="statTotal">0</div><div class="lbl">Total</div></div>
     <div class="stat"><div class="num mono" id="statDispo">0</div><div class="lbl">Disponibles</div></div>
+    <div class="stat"><div class="num mono" id="statEnCours">0</div><div class="lbl">En cours</div></div>
     <div class="stat"><div class="num mono" id="statVendu">0</div><div class="lbl">Vendus</div></div>
   </div>
 </div>
@@ -198,59 +249,22 @@ table.gestion .del-btn{background:none;border:none;color:#B34141;cursor:pointer;
     <div class="legend">
       <div><span class="dot sud"></span>Côté Sud (A / B)</div>
       <div><span class="dot nord"></span>Côté Nord (C / D)</div>
+      <div><span class="dot reserve"></span>Réservé</div>
+      <div><span class="dot confirme"></span>Confirmé</div>
       <div><span class="dot vendu"></span>Vendu</div>
     </div>
   </aside>
 
   <main>
-    <div class="tabs" style="align-items:center;justify-content:space-between;">
-      <div>
-        <button class="tab-btn active" data-tab="recherche">Recherche client</button>
-        <button class="tab-btn" data-tab="gestion">Gestion des prix</button>
-      </div>
-      <button class="btn ghost small" id="btnShowHistory">Historique des clients</button>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="recherche">Recherche client</button>
+      <button class="tab-btn" data-tab="gestion">Gestion des prix</button>
+      <button class="tab-btn" data-tab="parkings">Parkings</button>
+      <button class="tab-btn" data-tab="clients">Clients actuels</button>
+      <button class="tab-btn" data-tab="historique">Historique clients</button>
     </div>
 
-    <div class="history-panel" id="historyPanel" style="display:none;position:relative;top:0;margin-bottom:18px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;">
-        <div>
-          <h3 style="margin:0;font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:#1F2937;">Historique des clients</h3>
-          <div style="font-size:13px;color:#6B7280;margin-top:4px;">Clients retirés après passage à disponible</div>
-        </div>
-        <button class="btn ghost" id="btnCloseHistory">Fermer</button>
-      </div>
-      <div id="historyList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;"></div>
-    </div>
-
-    <div class="client-panel" id="clientPanel" style="display:none;position:relative;top:0;">
-      <h3 style="margin:0 0 12px;font-size:15px;">Fiche client</h3>
-      <div class="filters-grid">
-        <div class="field"><label>Nom</label><input type="text" id="clientName"></div>
-        <div class="field"><label>Prénom</label><input type="text" id="clientFirstName"></div>
-        <div class="field"><label>Téléphone</label><input type="text" id="clientPhone"></div>
-        <div class="field"><label>Budget (DA)</label><input type="number" id="clientBudget"></div>
-        <div class="field"><label>Typologie</label><input type="text" id="clientTypo"></div>
-        <div class="field"><label>Surface (m²)</label><input type="number" id="clientSurface"></div>
-        <div class="field"><label>Étage</label><input type="text" id="clientFloor" disabled></div>
-        <div class="field"><label>Appartement</label><input type="text" id="clientUnit" disabled></div>
-        <div class="field"><label>Apport initial (DA)</label><input type="number" id="clientApport"></div>
-        <div class="field"><label>Reste à payer (DA)</label><input type="number" id="clientReste"></div>
-        <div class="field"><label>Crédit bancaire</label>
-          <select id="clientCredit">
-            <option value="non">Non</option>
-            <option value="oui">Oui</option>
-          </select>
-        </div>
-      </div>
-      <div class="filters-actions" style="margin-top:10px;">
-        <button class="btn gold" id="btnSaveClient">Enregistrer et vendre</button>
-        <button class="btn ghost" id="btnPrintClient">Imprimer</button>
-        <button class="btn ghost" id="btnDownloadClient">Télécharger</button>
-        <button class="btn ghost" id="btnCloseClient">Fermer</button>
-      </div>
-    </div>
-
-    <!-- ===== RECHERCHE ===== -->
+    <!-- ===== RECHERCHE APPARTEMENTS ===== -->
     <section id="tab-recherche">
       <div class="filters">
         <div class="filters-grid">
@@ -280,6 +294,8 @@ table.gestion .del-btn{background:none;border:none;color:#B34141;cursor:pointer;
             <select id="fStatus">
               <option value="">Tous</option>
               <option value="disponible">Disponible</option>
+              <option value="reserve">Réservé</option>
+              <option value="confirme">Confirmé</option>
               <option value="vendu">Vendu</option>
             </select>
           </div>
@@ -304,16 +320,16 @@ table.gestion .del-btn{background:none;border:none;color:#B34141;cursor:pointer;
         </div>
       </div>
 
-        <div class="results-summary">
+      <div class="results-summary">
         <span id="resultsCount">— résultats</span>
         <span id="resultsHint"></span>
       </div>
       <div class="results-grid" id="resultsGrid"></div>
     </section>
 
-    <!-- ===== GESTION ===== -->
+    <!-- ===== GESTION APPARTEMENTS ===== -->
     <section id="tab-gestion" style="display:none;">
-      <p class="hint">Renseignez ici la surface et le prix fixe de chaque appartement (une seule fois). Les modifications sont enregistrées automatiquement dans ce navigateur. Utilisez « Exporter » pour garder une sauvegarde.</p>
+      <p class="hint">Renseignez ici la surface et le prix fixe de chaque appartement. Les modifications sont synchronisées automatiquement avec toute l'équipe. Utilisez « Exporter » pour garder une sauvegarde.</p>
       <div id="gestionContainer"></div>
 
       <div class="add-form">
@@ -334,12 +350,170 @@ table.gestion .del-btn{background:none;border:none;color:#B34141;cursor:pointer;
       </div>
 
       <div class="io-row">
-          <button class="btn ghost" id="btnExport">Exporter la sauvegarde (JSON)</button>
+        <button class="btn ghost" id="btnExport">Exporter la sauvegarde (JSON)</button>
         <button class="btn ghost" id="btnImport">Importer une sauvegarde</button>
         <input type="file" id="importFile" accept=".json" style="display:none;">
       </div>
     </section>
+
+    <!-- ===== PARKINGS ===== -->
+    <section id="tab-parkings" style="display:none;">
+      <div class="filters">
+        <div class="filters-grid">
+          <div class="field">
+            <label>Niveau</label>
+            <select id="pkFNiveau"><option value="">Tous</option></select>
+          </div>
+          <div class="field">
+            <label>Statut</label>
+            <select id="pkFStatus">
+              <option value="">Tous</option>
+              <option value="disponible">Disponible</option>
+              <option value="reserve">Réservé</option>
+              <option value="confirme">Confirmé</option>
+              <option value="vendu">Vendu</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Budget (DA)</label>
+            <div class="range-pair">
+              <input type="number" id="pkFPriceMin" placeholder="Min">
+              <input type="number" id="pkFPriceMax" placeholder="Max">
+            </div>
+          </div>
+        </div>
+        <div class="filters-actions">
+          <button class="btn gold" id="pkBtnFilter">Rechercher</button>
+          <button class="btn ghost" id="pkBtnReset">Réinitialiser</button>
+        </div>
+      </div>
+
+      <div class="results-summary">
+        <span id="pkResultsCount">— résultats</span>
+      </div>
+      <div class="results-grid" id="pkResultsGrid"></div>
+
+      <div class="section-heading"><h3>Gestion des parkings</h3></div>
+      <div id="pkGestionContainer"></div>
+
+      <div class="add-form">
+        <h3 style="margin:0 0 12px;font-size:15px;">Ajouter une place de parking</h3>
+        <div class="filters-grid">
+          <div class="field"><label>Numéro / Référence</label><input type="text" id="addPkNumero" placeholder="ex : P-12"></div>
+          <div class="field"><label>Niveau</label><input type="text" id="addPkNiveau" placeholder="ex : Sous-sol -1"></div>
+          <div class="field"><label>Prix (DA)</label><input type="number" id="addPkPrice"></div>
+        </div>
+        <button class="btn gold" id="btnAddParking">Ajouter le parking</button>
+        <p class="hint" style="margin-top:8px;">⚠️ Le taux d'apport initial pour les parkings est fixé par défaut à 50 % (modifiable dans le code, constante <span class="mono">PARKING_APPORT_RATE</span>).</p>
+      </div>
+    </section>
+
+    <!-- ===== CLIENTS ACTUELS ===== -->
+    <section id="tab-clients" style="display:none;">
+      <p class="hint">Tous les clients ayant une réservation, une confirmation ou une vente en cours (appartements et parkings confondus).</p>
+      <div class="filters">
+        <div class="filters-grid">
+          <div class="field"><label>Recherche (nom, prénom, téléphone)</label><input type="text" id="clSearch" placeholder="ex : Benali ou 0555..."></div>
+          <div class="field">
+            <label>Statut</label>
+            <select id="clFStatus">
+              <option value="">Tous</option>
+              <option value="reserve">Réservé</option>
+              <option value="confirme">Confirmé</option>
+              <option value="vendu">Vendu</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="results-summary"><span id="clResultsCount">— résultats</span></div>
+      <div class="results-grid" id="clResultsGrid"></div>
+    </section>
+
+    <!-- ===== HISTORIQUE ===== -->
+    <section id="tab-historique" style="display:none;">
+      <p class="hint">Clients dont la réservation ou la vente a été annulée / remise à disponible. Vous pouvez les supprimer définitivement ici.</p>
+      <div id="historyList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;"></div>
+    </section>
   </main>
+</div>
+
+<!-- ===== MODAL FICHE CLIENT (3 étapes) ===== -->
+<div class="modal-overlay" id="clientOverlay">
+  <div class="modal-panel">
+    <div class="modal-head">
+      <div>
+        <div class="modal-eyebrow" id="cpEyebrow">Dossier</div>
+        <h3 id="cpTitle">Fiche client</h3>
+      </div>
+      <button class="btn ghost small" id="btnCloseClient">✕ Fermer</button>
+    </div>
+
+    <div class="stepper">
+      <button class="step-btn" data-step="info">① Info client</button>
+      <button class="step-btn" data-step="confirm">② Confirmation</button>
+      <button class="step-btn" data-step="paiement">③ Paiement</button>
+    </div>
+
+    <!-- STEP 1 : INFO -->
+    <div class="step-view" id="stepInfo">
+      <div class="filters-grid">
+        <div class="field"><label>Nom</label><input type="text" id="ciName"></div>
+        <div class="field"><label>Prénom</label><input type="text" id="ciFirstName"></div>
+        <div class="field"><label>Téléphone</label><input type="text" id="ciPhone"></div>
+        <div class="field"><label>Budget souhaité (DA)</label><input type="number" id="ciBudget"></div>
+        <div class="field"><label>Emplacement</label><input type="text" id="ciLocation" disabled></div>
+        <div class="field"><label>Référence</label><input type="text" id="ciUnit" disabled></div>
+        <div class="field"><label>Typologie</label><input type="text" id="ciTypo" disabled></div>
+        <div class="field"><label>Surface (m²)</label><input type="text" id="ciSurface" disabled></div>
+      </div>
+      <div class="filters-actions">
+        <button class="btn gold" id="btnSaveInfo">Enregistrer la réservation</button>
+      </div>
+    </div>
+
+    <!-- STEP 2 : CONFIRMATION -->
+    <div class="step-view" id="stepConfirm">
+      <div class="filters-grid">
+        <div class="field"><label>Prix de l'unité (DA)</label><input type="number" id="cfPrice"></div>
+        <div class="field"><label>Apport initial calculé</label><input type="text" id="cfApportCalc" disabled></div>
+        <div class="field"><label>N° de chèque</label><input type="text" id="cfChequeNum"></div>
+        <div class="field"><label>Date de versement</label><input type="date" id="cfChequeDate"></div>
+      </div>
+      <label class="checkbox-row"><input type="checkbox" id="cfConfirmCheck"> Le client confirme le versement de l'apport initial par chèque</label>
+      <div class="filters-actions">
+        <button class="btn ghost" id="btnBackToInfo">◀ Retour à la fiche info</button>
+        <button class="btn gold" id="btnConfirmApport">Confirmer l'apport initial</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 : PAIEMENT -->
+    <div class="step-view" id="stepPaiement">
+      <div class="summary-box">
+        <div class="s-item"><div class="k">Prix</div><div class="v" id="pSumPrice">—</div></div>
+        <div class="s-item"><div class="k">Apport versé</div><div class="v" id="pSumApport">—</div></div>
+        <div class="s-item big"><div class="k">Reste à payer</div><div class="v" id="pSumReste">—</div></div>
+      </div>
+      <div class="notary-banner" id="notaryBanner" style="display:none;">✅ Paiement complet — le client peut passer chez le notaire pour finaliser l'acte.</div>
+
+      <h3 style="font-size:13px;margin:0 0 8px;">Versements (tranches)</h3>
+      <div class="tranche-list" id="trancheList"></div>
+      <div class="add-tranche-row">
+        <div class="field"><label>Libellé</label><input type="text" id="trLabel" placeholder="ex : 2ème tranche"></div>
+        <div class="field"><label>Montant (DA)</label><input type="number" id="trAmount"></div>
+        <div class="field"><label>Date</label><input type="date" id="trDate"></div>
+        <button class="btn gold small" id="btnAddTranche" style="height:38px;">+ Ajouter</button>
+      </div>
+
+      <div class="filters-actions">
+        <button class="btn ghost" id="btnPrintClient">Imprimer</button>
+        <button class="btn ghost" id="btnDownloadClient">Télécharger PDF</button>
+      </div>
+    </div>
+
+    <div class="modal-danger-zone">
+      <button class="btn danger small" id="btnCancelSale">Annuler la réservation / vente</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -365,14 +539,22 @@ const SHELL = {
 const BASE_FLOORS = [1,2,3,4,5,6,7,8,9,10,11];
 let ALL_FLOORS = [...BASE_FLOORS];
 
+// ⚠️ Taux d'apport initial pour les PARKINGS — non précisé par l'utilisateur,
+// valeur par défaut modifiable ici (50%).
+const PARKING_APPORT_RATE = 0.50;
+
+const STATUS_ORDER = ['disponible','reserve','confirme','vendu'];
+function statusIdx(s){ const i = STATUS_ORDER.indexOf(s); return i<0?0:i; }
+function statusLabel(s){ return {disponible:'Disponible', reserve:'Réservé', confirme:'Confirmé', vendu:'Vendu'}[s] || s; }
+
 function sideOf(letter){ return (letter==='A'||letter==='B') ? 'Sud' : 'Nord'; }
 function apportRate(floor){ return floor <= 4 ? 0.45 : 0.40; }
+function rateFor(entity){ return entity.type==='parking' ? PARKING_APPORT_RATE : apportRate(entity.floor); }
 function fmt(n){ if(n===undefined||n===null||n==='' || isNaN(n)) return '—'; return Number(n).toLocaleString('fr-FR').replace(/,/g,' '); }
+function val(id){ return document.getElementById(id).value; }
 
 /* ---------------------------------------------------------
    SYNCHRONISATION SUPABASE
-   Projet Supabase fourni par l'utilisateur.
-   Créez une table `BKBI-data` avec une ligne `id='data'` et une colonne `content` JSONB.
 --------------------------------------------------------- */
 const SUPABASE_URL = 'https://ebxxxigzpyabdexwnoqp.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_6c9qGdR9QvOn75y6NmzNiA_-2w5dUcY';
@@ -382,15 +564,11 @@ const SUPABASE_ENABLED = SUPABASE_URL && SUPABASE_KEY;
 
 let supabaseClient = null;
 let store = {};
-let customUnits = []; // [{floor,letter,typo}]
+let customUnits = [];
+let parkingUnits = [];
 let historyClients = [];
-
-/* ---------------------------------------------------------
-   CORRECTIF : ce verrou empêche persist() d'envoyer quoi que
-   ce soit vers Supabase tant que la première lecture des
-   données existantes n'a pas été reçue.
---------------------------------------------------------- */
 let initialSyncDone = false;
+let currentEntity = null; // {id, type, ...} for the open modal
 
 function setSyncStatus(text, color){
   const el = document.getElementById('syncStatus');
@@ -408,6 +586,9 @@ function onDataChange(){
   populateFloorFilter();
   applyFilters();
   if(document.getElementById('tab-gestion').style.display !== 'none') renderGestion();
+  populateParkingFilters();
+  applyParkingFilters();
+  if(document.getElementById('tab-parkings').style.display !== 'none') renderParkingGestion();
   renderHistoryPanel();
 }
 
@@ -420,14 +601,14 @@ function persist(){
     setSyncStatus('Synchronisation…', '#B7BEC8');
     supabaseClient
       .from(BKBI_TABLE)
-      .upsert({ id: BKBI_ROW, content: { store, customUnits, historyClients } }, { onConflict: 'id' })
+      .upsert({ id: BKBI_ROW, content: { store, customUnits, parkingUnits, historyClients } }, { onConflict: 'id' })
       .then(({ error })=>{
         if(error){ throw error; }
         setSyncStatus('🟢 Synchronisé avec Supabase', '#7FD7B0');
       }).catch(err=>{
         console.error(err);
         setSyncStatus('🔴 Erreur Supabase — données non sauvegardées', '#E39A9A');
-        toast('Erreur de synchronisation avec Supabase');
+        toast('Erreur de synchronisation avec Supabase', true);
       });
   } else {
     setSyncStatus('🔴 Supabase non configuré', '#E39A9A');
@@ -455,8 +636,7 @@ async function initData(){
     if(error){
       console.error(error);
       setSyncStatus('🔴 Erreur Supabase — données non chargées', '#E39A9A');
-      store = {};
-      customUnits = [];
+      store = {}; customUnits = []; parkingUnits = []; historyClients = [];
       onDataChange();
       return;
     }
@@ -464,18 +644,16 @@ async function initData(){
     if(data && data.content){
       store = data.content.store || {};
       customUnits = data.content.customUnits || [];
+      parkingUnits = data.content.parkingUnits || [];
       historyClients = data.content.historyClients || [];
     } else {
-      store = {};
-      customUnits = [];
-      historyClients = [];
+      store = {}; customUnits = []; parkingUnits = []; historyClients = [];
     }
     initialSyncDone = true;
     setSyncStatus('🟢 Synchronisé avec Supabase', '#7FD7B0');
     onDataChange();
   } else {
-    store = {};
-    customUnits = [];
+    store = {}; customUnits = []; parkingUnits = [];
     setSyncStatus('🔴 Supabase non configuré', '#E39A9A');
     onDataChange();
   }
@@ -489,7 +667,7 @@ function buildUnits(){
       const id = floor+letter;
       const rec = store[id] || {};
       units.push({
-        id, floor, letter, typo,
+        id, type:'appartement', floor, letter, typo,
         side: sideOf(letter),
         surface: rec.surface ?? '',
         price: rec.price ?? '',
@@ -501,7 +679,7 @@ function buildUnits(){
     const id = cu.floor+cu.letter+'-'+cu.typo;
     const rec = store[id] || {};
     units.push({
-      id, floor: cu.floor, letter: cu.letter, typo: cu.typo,
+      id, type:'appartement', floor: cu.floor, letter: cu.letter, typo: cu.typo,
       side: sideOf(cu.letter),
       surface: rec.surface ?? cu.surface ?? '',
       price: rec.price ?? cu.price ?? '',
@@ -513,13 +691,25 @@ function buildUnits(){
   return units;
 }
 
-function toast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), 1800);
+function buildParkingUnits(){
+  return parkingUnits.map(p=>{
+    const rec = store[p.id] || {};
+    return {
+      id: p.id, type:'parking', numero: p.numero, niveau: p.niveau,
+      price: rec.price ?? p.price ?? '',
+      status: rec.status || 'disponible'
+    };
+  }).sort((a,b)=> a.numero.localeCompare(b.numero, undefined, {numeric:true}));
 }
 
-/* ---------------- Building nav (signature) ---------------- */
+function toast(msg, isErr){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  t.classList.toggle('err', !!isErr);
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), isErr?4000:1800);
+}
+
+/* ---------------- Building nav ---------------- */
 function renderBuildingNav(units){
   const el = document.getElementById('buildingNav');
   el.innerHTML = '';
@@ -532,8 +722,8 @@ function renderBuildingNav(units){
       row.innerHTML = `<span class="floor-num">${floor}</span><span class="floor-empty">non communiqué</span>`;
     } else {
       const dots = floorUnits.map(u=>{
-        const cls = u.status==='vendu' ? 'vendu' : (u.side==='Sud'?'sud':'nord');
-        return `<span class="dot ${cls}" title="${u.letter} · ${u.typo} · ${u.side}"></span>`;
+        const cls = u.status!=='disponible' ? u.status : (u.side==='Sud'?'sud':'nord');
+        return `<span class="dot ${cls}" title="${u.letter} · ${u.typo} · ${u.side} · ${statusLabel(u.status)}"></span>`;
       }).join('');
       row.innerHTML = `<span class="floor-num">${floor}</span><span class="floor-dots">${dots}</span>`;
     }
@@ -548,10 +738,12 @@ function renderBuildingNav(units){
   });
 }
 
-/* ---------------- Filters ---------------- */
+/* ---------------- Filters (appartements) ---------------- */
 function populateFloorFilter(){
   const sel = document.getElementById('fFloor');
+  const cur = sel.value;
   sel.innerHTML = '<option value="">Tous</option>' + ALL_FLOORS.map(f=>`<option value="${f}">Étage ${f}</option>`).join('');
+  sel.value = cur;
 }
 
 function applyFilters(){
@@ -587,7 +779,14 @@ function resetFilters(){
   applyFilters();
 }
 
-/* ---------------- Results ---------------- */
+function actionLabelFor(status){
+  return {disponible:'Vendre', reserve:'Dossier (réservé)', confirme:'Paiement', vendu:'Dossier client'}[status] || 'Dossier';
+}
+function actionClassFor(status){
+  return status==='disponible' ? 'btn gold small' : 'btn ghost small';
+}
+
+/* ---------------- Results (appartements) ---------------- */
 function renderResults(list){
   const grid = document.getElementById('resultsGrid');
   document.getElementById('resultsCount').textContent = list.length + (list.length>1 ? ' résultats' : ' résultat');
@@ -604,8 +803,10 @@ function renderResults(list){
     const rate = apportRate(u.floor);
     const apport = price ? Math.round(price*rate) : 0;
     const reste = price ? price-apport : 0;
+    const rec = store[u.id] || {};
+    const client = rec.client;
     const card = document.createElement('div');
-    card.className = 'card' + (u.status==='vendu' ? ' vendu' : '');
+    card.className = 'card' + (u.status!=='disponible' ? ' '+u.status : '');
     card.innerHTML = `
       <div class="card-head">
         <div>
@@ -621,230 +822,45 @@ function renderResults(list){
           <div class="row-line"><span class="k">Apport initial (${Math.round(rate*100)}%)</span><span class="v">${fmt(apport)} DA</span></div>
           <div class="row-line"><span class="k">Reste à payer</span><span class="v">${fmt(reste)} DA</span></div>
         </div>
-        <span class="status-pill ${u.status}">${u.status==='vendu' ? 'Vendu' : 'Disponible'}</span>
+        <span class="status-pill ${u.status}">${statusLabel(u.status)}</span>
+        ${client ? `<span class="client-tag">${client.name||''} ${client.firstName||''}</span>` : ''}
       </div>
       <div class="card-foot">
-        <button class="btn ghost small" data-client="${u.id}">Client</button>
+        <button class="${actionClassFor(u.status)}" data-sell="${u.id}">${actionLabelFor(u.status)}</button>
         <button class="btn ghost small" data-copy="${u.id}">Copier la fiche</button>
       </div>
     `;
-    card.querySelector('[data-client]').addEventListener('click', ()=> openClientPanel(u));
+    card.querySelector('[data-sell]').addEventListener('click', ()=> openClientPanel(u));
     card.querySelector('[data-copy]').addEventListener('click', ()=>{
-      const text = `BKBI — Étage ${u.floor}, Appartement ${u.letter} (${u.typo}), côté ${u.side}\nSurface : ${u.surface||'—'} m²\nPrix : ${price?fmt(price)+' DA':'—'}\nApport initial (${Math.round(rate*100)}%) : ${fmt(apport)} DA\nReste à payer : ${fmt(reste)} DA\nStatut : ${u.status==='vendu'?'Vendu':'Disponible'}`;
+      const text = `BKBI — Étage ${u.floor}, Appartement ${u.letter} (${u.typo}), côté ${u.side}\nSurface : ${u.surface||'—'} m²\nPrix : ${price?fmt(price)+' DA':'—'}\nApport initial (${Math.round(rate*100)}%) : ${fmt(apport)} DA\nReste à payer : ${fmt(reste)} DA\nStatut : ${statusLabel(u.status)}`;
       navigator.clipboard.writeText(text).then(()=>toast('Fiche copiée dans le presse-papiers'));
     });
     grid.appendChild(card);
   });
 }
 
-function openClientPanel(unit){
-  const panel = document.getElementById('clientPanel');
-  const rec = store[unit.id] || {};
-  const client = rec.client || rec.lastClient || {};
-  document.getElementById('clientName').value = client.name || '';
-  document.getElementById('clientFirstName').value = client.firstName || '';
-  document.getElementById('clientPhone').value = client.phone || '';
-  document.getElementById('clientBudget').value = client.budget || '';
-  document.getElementById('clientTypo').value = client.typo || unit.typo;
-  document.getElementById('clientSurface').value = client.surface || unit.surface || '';
-  document.getElementById('clientFloor').value = unit.floor;
-  document.getElementById('clientUnit').value = unit.letter;
-  document.getElementById('clientApport').value = client.apport || Math.round((Number(unit.price)||0) * apportRate(unit.floor));
-  document.getElementById('clientReste').value = client.reste || (Number(unit.price)||0) - (client.apport || Math.round((Number(unit.price)||0) * apportRate(unit.floor)));
-  document.getElementById('clientCredit').value = client.credit || 'non';
-  panel.dataset.unitId = unit.id;
-  panel.style.display = 'block';
-  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
-}
-
-function closeClientPanel(){
-  const panel = document.getElementById('clientPanel');
-  panel.style.display = 'none';
-  delete panel.dataset.unitId;
-}
-
-function saveClientPanel(){
-  const panel = document.getElementById('clientPanel');
-  const id = panel.dataset.unitId;
-  if(!id) return;
-  if(!store[id]) store[id] = {};
-  const client = {
-    name: document.getElementById('clientName').value.trim(),
-    firstName: document.getElementById('clientFirstName').value.trim(),
-    phone: document.getElementById('clientPhone').value.trim(),
-    budget: document.getElementById('clientBudget').value.trim(),
-    typo: document.getElementById('clientTypo').value.trim(),
-    surface: document.getElementById('clientSurface').value.trim(),
-    apport: document.getElementById('clientApport').value.trim(),
-    reste: document.getElementById('clientReste').value.trim(),
-    credit: document.getElementById('clientCredit').value,
-  };
-  store[id].client = client;
-  store[id].status = 'vendu';
-  persist();
-  applyFilters();
-  renderGestion();
-  toast('Informations client enregistrées et appartement vendu');
-}
-
-function getClientPanelData(){
-  const panel = document.getElementById('clientPanel');
-  const id = panel.dataset.unitId;
-  if(!id) return null;
-  return {
-    promotion: 'BKBI — Promotion Résidentielle',
-    date: new Date().toLocaleDateString('fr-FR'),
-    appartement: document.getElementById('clientUnit').value,
-    typologie: document.getElementById('clientTypo').value,
-    etage: document.getElementById('clientFloor').value,
-    nom: document.getElementById('clientName').value,
-    prenom: document.getElementById('clientFirstName').value,
-    telephone: document.getElementById('clientPhone').value,
-    budget: document.getElementById('clientBudget').value,
-    surface: document.getElementById('clientSurface').value,
-    apport: document.getElementById('clientApport').value,
-    reste: document.getElementById('clientReste').value,
-    credit: document.getElementById('clientCredit').value === 'oui' ? 'Oui' : 'Non',
-    id
-  };
-}
-
-function renderClientPrintHtml(data){
-  return `
-    <html><head><title>Fiche client BKBI</title>
-    <style>
-      body{font-family:Arial,sans-serif;margin:0;padding:32px;color:#1F2937;background:#F8FAFC;}
-      .page{background:#fff;padding:30px;border-radius:14px;box-shadow:0 20px 60px rgba(15,23,42,.1);max-width:780px;margin:auto;}
-      h1{font-size:24px;margin-bottom:8px;letter-spacing:.05em;color:#111827;text-transform:uppercase;}
-      .subtitle{font-size:13px;color:#4B5563;margin-bottom:24px;}
-      .section{display:grid;grid-template-columns:repeat(2,minmax(180px,1fr));gap:18px;margin-bottom:24px;}
-      .block{padding:18px;border:1px solid #E5E7EB;border-radius:14px;background:#F9FAFB;}
-      .block h2{font-size:12px;margin:0 0 10px;color:#6B7280;text-transform:uppercase;letter-spacing:.08em;}
-      .field{margin-bottom:10px;}
-      .label{font-size:11px;color:#6B7280;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;display:block;}
-      .value{font-size:15px;color:#111827;line-height:1.5;}
-      .footer{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#6B7280;border-top:1px solid #E5E7EB;padding-top:18px;margin-top:18px;}
-    </style>
-    </head><body><div class="page">
-      <h1>Fiche client</h1>
-      <div class="subtitle">${data.promotion} · ${data.date}</div>
-      <div class="section">
-        <div class="block">
-          <h2>Informations client</h2>
-          <div class="field"><span class="label">Nom</span><span class="value">${data.nom}</span></div>
-          <div class="field"><span class="label">Prénom</span><span class="value">${data.prenom}</span></div>
-          <div class="field"><span class="label">Téléphone</span><span class="value">${data.telephone}</span></div>
-          <div class="field"><span class="label">Budget</span><span class="value">${data.budget ? data.budget + ' DA' : '—'}</span></div>
-        </div>
-        <div class="block">
-          <h2>Appartement</h2>
-          <div class="field"><span class="label">Appartement</span><span class="value">${data.appartement}</span></div>
-          <div class="field"><span class="label">Typologie</span><span class="value">${data.typologie}</span></div>
-          <div class="field"><span class="label">Étage</span><span class="value">${data.etage}</span></div>
-          <div class="field"><span class="label">Surface</span><span class="value">${data.surface ? data.surface + ' m²' : '—'}</span></div>
-        </div>
-      </div>
-      <div class="section">
-        <div class="block">
-          <h2>Financement</h2>
-          <div class="field"><span class="label">Apport initial</span><span class="value">${data.apport ? data.apport + ' DA' : '—'}</span></div>
-          <div class="field"><span class="label">Reste à payer</span><span class="value">${data.reste ? data.reste + ' DA' : '—'}</span></div>
-        </div>
-        <div class="block">
-          <h2>Prêt bancaire</h2>
-          <div class="field"><span class="label">Crédit</span><span class="value">${data.credit}</span></div>
-        </div>
-      </div>
-      <div class="footer"><span>BKBI — Fiche client</span><span>Référence : ${data.id}</span></div>
-    </div></body></html>`;
-}
-
-function printClientPanel(){
-  const panel = document.getElementById('clientPanel');
-  if(panel.style.display === 'none') return;
-  const data = getClientPanelData();
-  if(!data) return;
-  const printWindow = window.open('', '_blank');
-  if(!printWindow) { toast('Impossible d’ouvrir la fenêtre d’impression'); return; }
-  const html = renderClientPrintHtml(data);
-  printWindow.document.write(html);
-  printWindow.document.close();
-  printWindow.focus();
-  printWindow.print();
-}
-
-function downloadClientPanel(){
-  const panel = document.getElementById('clientPanel');
-  if(panel.style.display === 'none') return;
-  const data = getClientPanelData();
-  if(!data) return;
-  try{
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit:'pt', format:'a4' });
-    const margin = 40;
-    let y = 60;
-    doc.setFont('Helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.text('Fiche client BKBI', margin, y);
-    doc.setFont('Helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.text(`Promotion : ${data.promotion}`, margin, y + 24);
-    doc.text(`Date : ${data.date}`, 520, y + 24, { align: 'right' });
-
-    y += 50;
-    const sections = [
-      { title: 'Informations client', items: [
-        ['Nom', data.nom], ['Prénom', data.prenom], ['Téléphone', data.telephone], ['Budget', data.budget ? data.budget + ' DA' : '—']
-      ]},
-      { title: 'Appartement', items: [
-        ['Appartement', data.appartement], ['Typologie', data.typologie], ['Étage', data.etage], ['Surface', data.surface ? data.surface + ' m²' : '—']
-      ]},
-      { title: 'Financement', items: [
-        ['Apport initial', data.apport ? data.apport + ' DA' : '—'], ['Reste à payer', data.reste ? data.reste + ' DA' : '—']
-      ]},
-      { title: 'Prêt bancaire', items: [
-        ['Crédit', data.credit]
-      ]}
-    ];
-
-    sections.forEach(section=>{
-      doc.setFillColor(245, 247, 250);
-      doc.rect(margin, y - 8, 520, 24, 'F');
-      doc.setFont('Helvetica', 'bold');
-      doc.setFontSize(12);
-      doc.text(section.title, margin + 6, y + 10);
-      y += 30;
-      doc.setFont('Helvetica', 'normal');
-      doc.setFontSize(11);
-      section.items.forEach(([label, value])=>{
-        doc.text(`${label}:`, margin + 6, y);
-        doc.text(String(value), margin + 140, y);
-        y += 18;
-      });
-      y += 12;
-    });
-
-    doc.setDrawColor(226, 232, 240);
-    doc.line(margin, y, 560, y);
-    y += 18;
-    doc.setFontSize(10);
-    doc.text(`Référence BKBI : ${data.id}`, margin, y);
-    doc.text('Page 1', 560, y, { align: 'right' });
-    const id = data.id || 'client';
-    doc.save(`fiche_client_${id}.pdf`);
-  }catch(err){
-    console.error(err);
-    toast('Impossible de générer le PDF');
-  }
-}
-
 function renderStats(units){
   document.getElementById('statTotal').textContent = units.length;
-  document.getElementById('statDispo').textContent = units.filter(u=>u.status!=='vendu').length;
+  document.getElementById('statDispo').textContent = units.filter(u=>u.status==='disponible').length;
+  document.getElementById('statEnCours').textContent = units.filter(u=>u.status==='reserve'||u.status==='confirme').length;
   document.getElementById('statVendu').textContent = units.filter(u=>u.status==='vendu').length;
 }
 
-/* ---------------- Gestion ---------------- */
+/* ---------------- Gestion (appartements) ---------------- */
+function archiveIfLeavingClient(id, prevStatus, newStatus, entityMeta){
+  if(prevStatus && prevStatus!=='disponible' && newStatus==='disponible' && store[id] && store[id].client){
+    historyClients.push({
+      id, type: entityMeta.type,
+      appartement: entityMeta.type==='parking' ? entityMeta.numero : entityMeta.letter,
+      typologie: entityMeta.type==='parking' ? 'Parking' : entityMeta.typo,
+      etage: entityMeta.type==='parking' ? entityMeta.niveau : entityMeta.floor,
+      removedAt: new Date().toISOString(),
+      client: store[id].client
+    });
+    delete store[id].client;
+  }
+}
+
 function renderGestion(){
   const units = buildUnits();
   const container = document.getElementById('gestionContainer');
@@ -853,21 +869,17 @@ function renderGestion(){
     const list = units.filter(u=>u.floor===floor);
     if(list.length===0) return;
     const rate = Math.round(apportRate(floor)*100);
-    const twinNote = (floor===7 || floor===8) ? ' <span class="apport-tag">Étages 7 et 8 identiques</span>' : '';
     const wrap = document.createElement('div');
     wrap.className='gestion-floor';
-    wrap.innerHTML = `<h3>Étage ${floor} <span class="apport-tag">Apport initial : ${rate}%</span>${twinNote}</h3>`;
+    wrap.innerHTML = `<h3>Étage ${floor} <span class="apport-tag">Apport initial : ${rate}%</span></h3>`;
     const table = document.createElement('table');
     table.className='gestion';
     table.innerHTML = `<thead><tr>
       <th style="width:60px;">Appt</th><th style="width:70px;">Type</th><th style="width:70px;">Côté</th>
-      <th>Surface (m²)</th><th>Prix (DA)</th><th style="width:130px;">Statut</th><th style="width:90px;">Info client</th><th style="width:36px;"></th>
+      <th>Surface (m²)</th><th>Prix (DA)</th><th style="width:130px;">Statut</th><th style="width:90px;">Dossier</th><th style="width:36px;"></th>
     </tr></thead><tbody></tbody>`;
     const tbody = table.querySelector('tbody');
     list.forEach(u=>{
-      const client = (store[u.id] && store[u.id].client) ? store[u.id].client : null;
-      const clientLabel = 'Client';
-      const clientButton = `<button class="btn ghost small" data-client="${u.id}">${clientLabel}</button>`;
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><strong>${u.letter}</strong></td>
@@ -876,12 +888,14 @@ function renderGestion(){
         <td><input type="number" value="${u.surface}" data-id="${u.id}" data-field="surface"></td>
         <td><input type="number" value="${u.price}" data-id="${u.id}" data-field="price"></td>
         <td>
-          <select data-id="${u.id}" data-field="status">
+          <select data-id="${u.id}" data-field="status" data-meta='${JSON.stringify({type:'appartement',floor:u.floor,letter:u.letter,typo:u.typo})}'>
             <option value="disponible" ${u.status==='disponible'?'selected':''}>Disponible</option>
+            <option value="reserve" ${u.status==='reserve'?'selected':''}>Réservé</option>
+            <option value="confirme" ${u.status==='confirme'?'selected':''}>Confirmé</option>
             <option value="vendu" ${u.status==='vendu'?'selected':''}>Vendu</option>
           </select>
         </td>
-        <td>${clientButton}</td>
+        <td><button class="btn ghost small" data-client="${u.id}">Ouvrir</button></td>
         <td>${u.custom ? `<button class="del-btn" data-del="${u.id}" title="Supprimer">✕</button>` : ''}</td>
       `;
       tbody.appendChild(tr);
@@ -894,21 +908,12 @@ function renderGestion(){
     inp.addEventListener('change', e=>{
       const id = e.target.dataset.id, field = e.target.dataset.field;
       if(!store[id]) store[id] = {};
-      const prevStatus = store[id].status;
-      store[id][field] = e.target.value;
-      if(field==='status' && prevStatus==='vendu' && e.target.value==='disponible' && store[id].client){
-        const unit = buildUnits().find(u=>u.id===id) || {};
-        const client = store[id].client;
-        historyClients.push({
-          id,
-          appartement: unit.letter || '',
-          typologie: unit.typo || store[id].typo || '',
-          etage: unit.floor || '',
-          removedAt: new Date().toISOString(),
-          client
-        });
-        delete store[id].client;
+      if(field==='status'){
+        const meta = JSON.parse(e.target.dataset.meta);
+        const prev = store[id].status || 'disponible';
+        archiveIfLeavingClient(id, prev, e.target.value, meta);
       }
+      store[id][field] = e.target.value;
       persist();
       toast('Enregistré');
       applyFilters();
@@ -938,44 +943,306 @@ function renderGestion(){
   });
 }
 
+/* ---------------- Parkings : filters + results + gestion ---------------- */
+function populateParkingFilters(){
+  const sel = document.getElementById('pkFNiveau');
+  const cur = sel.value;
+  const niveaus = [...new Set(parkingUnits.map(p=>p.niveau).filter(Boolean))];
+  sel.innerHTML = '<option value="">Tous</option>' + niveaus.map(n=>`<option value="${n}">${n}</option>`).join('');
+  sel.value = cur;
+}
+
+function applyParkingFilters(){
+  const units = buildParkingUnits();
+  const niveau = document.getElementById('pkFNiveau').value;
+  const status = document.getElementById('pkFStatus').value;
+  const pMin = parseFloat(document.getElementById('pkFPriceMin').value);
+  const pMax = parseFloat(document.getElementById('pkFPriceMax').value);
+
+  const filtered = units.filter(u=>{
+    if(niveau && u.niveau!==niveau) return false;
+    if(status && u.status!==status) return false;
+    if(!isNaN(pMin) && (u.price==='' || Number(u.price) < pMin)) return false;
+    if(!isNaN(pMax) && (u.price==='' || Number(u.price) > pMax)) return false;
+    return true;
+  });
+
+  renderParkingResults(filtered);
+}
+
+function renderParkingResults(list){
+  const grid = document.getElementById('pkResultsGrid');
+  document.getElementById('pkResultsCount').textContent = list.length + (list.length>1 ? ' résultats' : ' résultat');
+  grid.innerHTML = '';
+  if(list.length===0){
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+      <h3>Aucun parking ne correspond</h3>
+      <p>Ajoutez des places de parking ci-dessous dans « Gestion des parkings ».</p>
+    </div>`;
+    return;
+  }
+  list.forEach(u=>{
+    const price = Number(u.price)||0;
+    const rate = PARKING_APPORT_RATE;
+    const apport = price ? Math.round(price*rate) : 0;
+    const reste = price ? price-apport : 0;
+    const rec = store[u.id] || {};
+    const client = rec.client;
+    const card = document.createElement('div');
+    card.className = 'card' + (u.status!=='disponible' ? ' '+u.status : '');
+    card.innerHTML = `
+      <div class="card-head">
+        <div>
+          <div class="floor-badge">${u.niveau || '—'}</div>
+          <div class="unit-name">${u.numero}</div>
+        </div>
+        <span class="side-tag parking">Parking</span>
+      </div>
+      <div class="card-body">
+        <div class="price-big">${price ? fmt(price)+' DA' : 'Prix non saisi'}</div>
+        <div class="apport-box">
+          <div class="row-line"><span class="k">Apport initial (${Math.round(rate*100)}%)</span><span class="v">${fmt(apport)} DA</span></div>
+          <div class="row-line"><span class="k">Reste à payer</span><span class="v">${fmt(reste)} DA</span></div>
+        </div>
+        <span class="status-pill ${u.status}">${statusLabel(u.status)}</span>
+        ${client ? `<span class="client-tag">${client.name||''} ${client.firstName||''}</span>` : ''}
+      </div>
+      <div class="card-foot">
+        <button class="${actionClassFor(u.status)}" data-sell="${u.id}">${actionLabelFor(u.status)}</button>
+      </div>
+    `;
+    card.querySelector('[data-sell]').addEventListener('click', ()=> openClientPanel(u));
+    grid.appendChild(card);
+  });
+}
+
+function renderParkingGestion(){
+  const units = buildParkingUnits();
+  const container = document.getElementById('pkGestionContainer');
+  if(units.length===0){ container.innerHTML = '<p class="hint">Aucun parking ajouté pour le moment.</p>'; return; }
+  const table = document.createElement('table');
+  table.className='gestion';
+  table.innerHTML = `<thead><tr>
+    <th style="width:100px;">Numéro</th><th>Niveau</th><th>Prix (DA)</th><th style="width:130px;">Statut</th><th style="width:90px;">Dossier</th><th style="width:36px;"></th>
+  </tr></thead><tbody></tbody>`;
+  const tbody = table.querySelector('tbody');
+  units.forEach(u=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${u.numero}</strong></td>
+      <td><input type="text" value="${u.niveau||''}" data-pkid="${u.id}" data-pkfield="niveau"></td>
+      <td><input type="number" value="${u.price}" data-pkid="${u.id}" data-pkfield="price"></td>
+      <td>
+        <select data-pkid="${u.id}" data-pkfield="status" data-meta='${JSON.stringify({type:'parking',numero:u.numero,niveau:u.niveau})}'>
+          <option value="disponible" ${u.status==='disponible'?'selected':''}>Disponible</option>
+          <option value="reserve" ${u.status==='reserve'?'selected':''}>Réservé</option>
+          <option value="confirme" ${u.status==='confirme'?'selected':''}>Confirmé</option>
+          <option value="vendu" ${u.status==='vendu'?'selected':''}>Vendu</option>
+        </select>
+      </td>
+      <td><button class="btn ghost small" data-pkclient="${u.id}">Ouvrir</button></td>
+      <td><button class="del-btn" data-pkdel="${u.id}" title="Supprimer">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  container.innerHTML = '';
+  container.appendChild(table);
+
+  container.querySelectorAll('[data-pkfield]').forEach(inp=>{
+    inp.addEventListener('change', e=>{
+      const id = e.target.dataset.pkid, field = e.target.dataset.pkfield;
+      if(!store[id]) store[id] = {};
+      if(field==='status'){
+        const meta = JSON.parse(e.target.dataset.meta);
+        const prev = store[id].status || 'disponible';
+        archiveIfLeavingClient(id, prev, e.target.value, meta);
+      }
+      if(field==='niveau'){
+        const p = parkingUnits.find(pk=>pk.id===id);
+        if(p) p.niveau = e.target.value;
+      } else {
+        store[id][field] = e.target.value;
+      }
+      persist();
+      toast('Enregistré');
+      applyParkingFilters();
+      populateParkingFilters();
+      renderHistoryPanel();
+    });
+  });
+  container.querySelectorAll('[data-pkclient]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const id = e.currentTarget.dataset.pkclient;
+      const unit = buildParkingUnits().find(u=>u.id===id);
+      if(unit) openClientPanel(unit);
+    });
+  });
+  container.querySelectorAll('[data-pkdel]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const id = e.currentTarget.dataset.pkdel;
+      parkingUnits = parkingUnits.filter(p=>p.id!==id);
+      delete store[id];
+      persist();
+      renderParkingGestion();
+      applyParkingFilters();
+      populateParkingFilters();
+      toast('Parking supprimé');
+    });
+  });
+}
+
+document.getElementById('btnAddParking').addEventListener('click', ()=>{
+  const numero = val('addPkNumero').trim();
+  const niveau = val('addPkNiveau').trim() || 'Non précisé';
+  const price = val('addPkPrice');
+  if(!numero){ toast('Indiquez un numéro de parking'); return; }
+  const id = 'PK-' + numero.toUpperCase().replace(/\s+/g,'');
+  if(parkingUnits.some(p=>p.id===id)){ toast('Ce numéro de parking existe déjà'); return; }
+  parkingUnits.push({id, numero, niveau, price});
+  store[id] = {price, status:'disponible'};
+  persist();
+  populateParkingFilters();
+  renderParkingGestion();
+  applyParkingFilters();
+  document.getElementById('addPkNumero').value='';
+  document.getElementById('addPkNiveau').value='';
+  document.getElementById('addPkPrice').value='';
+  toast('Parking ajouté');
+});
+
+document.getElementById('pkBtnFilter').addEventListener('click', applyParkingFilters);
+document.getElementById('pkBtnReset').addEventListener('click', ()=>{
+  ['pkFNiveau','pkFStatus','pkFPriceMin','pkFPriceMax'].forEach(id=>document.getElementById(id).value='');
+  applyParkingFilters();
+});
+['pkFNiveau','pkFStatus'].forEach(id=>document.getElementById(id).addEventListener('change', applyParkingFilters));
+
+/* ---------------- Clients actuels ---------------- */
+function buildAllClientEntries(){
+  const entries = [];
+  buildUnits().forEach(u=>{
+    const rec = store[u.id];
+    if(rec && rec.client && rec.status && rec.status!=='disponible'){
+      entries.push({ entity: u, client: rec.client, status: rec.status });
+    }
+  });
+  buildParkingUnits().forEach(u=>{
+    const rec = store[u.id];
+    if(rec && rec.client && rec.status && rec.status!=='disponible'){
+      entries.push({ entity: u, client: rec.client, status: rec.status });
+    }
+  });
+  return entries;
+}
+
+function applyClientsFilter(){
+  const q = val('clSearch').trim().toLowerCase();
+  const status = val('clFStatus');
+  let entries = buildAllClientEntries();
+  if(status) entries = entries.filter(e=>e.status===status);
+  if(q){
+    entries = entries.filter(e=>{
+      const c = e.client;
+      return (c.name||'').toLowerCase().includes(q) || (c.firstName||'').toLowerCase().includes(q) || (c.phone||'').toLowerCase().includes(q);
+    });
+  }
+  entries.sort((a,b)=> (b.client.reservedAt||'').localeCompare(a.client.reservedAt||''));
+  renderClientsList(entries);
+}
+
+function renderClientsList(entries){
+  const grid = document.getElementById('clResultsGrid');
+  document.getElementById('clResultsCount').textContent = entries.length + (entries.length>1 ? ' résultats' : ' résultat');
+  grid.innerHTML = '';
+  if(entries.length===0){
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+      <h3>Aucun client actif</h3>
+      <p>Les clients apparaissent ici dès qu'une réservation est enregistrée depuis une fiche.</p>
+    </div>`;
+    return;
+  }
+  entries.forEach(({entity, client, status})=>{
+    const reste = client.price ? Math.max(computeReste(client),0) : null;
+    const card = document.createElement('div');
+    card.className = 'card ' + status;
+    card.innerHTML = `
+      <div class="card-head">
+        <div>
+          <div class="floor-badge">${entity.type==='parking' ? (entity.niveau||'Parking') : ('ÉTAGE '+entity.floor)}</div>
+          <div class="unit-name">${entity.type==='parking' ? entity.numero : (entity.typo+' — '+entity.letter)}</div>
+        </div>
+        <span class="status-pill ${status}">${statusLabel(status)}</span>
+      </div>
+      <div class="card-body">
+        <div class="row-line"><span class="k">Client</span><span class="v">${client.name||''} ${client.firstName||''}</span></div>
+        <div class="row-line"><span class="k">Téléphone</span><span class="v">${client.phone || '—'}</span></div>
+        <div class="row-line"><span class="k">Budget</span><span class="v">${client.budget ? fmt(client.budget)+' DA' : '—'}</span></div>
+        ${client.price ? `<div class="row-line"><span class="k">Prix convenu</span><span class="v">${fmt(client.price)} DA</span></div>` : ''}
+        ${reste!==null ? `<div class="row-line"><span class="k">Reste à payer</span><span class="v">${fmt(reste)} DA</span></div>` : ''}
+      </div>
+      <div class="card-foot">
+        <button class="btn gold small" data-open="${entity.id}">Ouvrir le dossier</button>
+      </div>
+    `;
+    card.querySelector('[data-open]').addEventListener('click', ()=> openClientPanel(entity));
+    grid.appendChild(card);
+  });
+}
+
+document.getElementById('clSearch').addEventListener('input', applyClientsFilter);
+document.getElementById('clFStatus').addEventListener('change', applyClientsFilter);
+
+/* ---------------- Historique ---------------- */
 function renderHistoryPanel(){
-  const panel = document.getElementById('historyPanel');
   const list = document.getElementById('historyList');
-  if(!panel || !list) return;
+  if(!list) return;
   if(historyClients.length === 0){
     list.innerHTML = `<div class="empty-state" style="padding:28px;grid-column:1/-1;">Aucun client dans l'historique pour le moment.</div>`;
     return;
   }
-  const cards = historyClients
-    .slice()
-    .sort((a,b)=> new Date(b.removedAt) - new Date(a.removedAt))
-    .map(entry => {
+  const sorted = historyClients.slice().sort((a,b)=> new Date(b.removedAt) - new Date(a.removedAt));
+  const cards = sorted.map(entry => {
       const client = entry.client || {};
       const date = new Date(entry.removedAt).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
+      const paid = (client.tranches||[]).reduce((s,t)=>s+Number(t.amount||0),0);
+      const key = entry.id + '__' + entry.removedAt;
       return `
         <div class="card" style="padding:18px;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;">
             <div>
-              <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#6B7280;margin-bottom:8px;">${entry.appartement || '—'} · ${entry.typologie || '—'}</div>
+              <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#6B7280;margin-bottom:8px;">${entry.type==='parking' ? 'Parking '+entry.appartement : entry.appartement + ' · ' + entry.typologie}</div>
               <div style="font-size:15px;font-weight:700;color:#111827;">${client.name || '—'} ${client.firstName || ''}</div>
             </div>
-            <div style="font-size:12px;color:#6B7280;text-align:right;">${date}</div>
+            <div style="text-align:right;">
+              <div style="font-size:12px;color:#6B7280;margin-bottom:6px;">${date}</div>
+              <button class="btn danger small" data-histdel="${key}">Supprimer</button>
+            </div>
           </div>
           <div style="font-size:13px;color:#374151;line-height:1.6;">
             <div><strong>Téléphone :</strong> ${client.phone || '—'}</div>
             <div><strong>Budget :</strong> ${client.budget ? client.budget + ' DA' : '—'}</div>
-            <div><strong>Surface demandée :</strong> ${client.surface ? client.surface + ' m²' : '—'}</div>
-            <div><strong>Appartement :</strong> ${entry.appartement || '—'}</div>
-            <div><strong>Étage :</strong> ${entry.etage || '—'}</div>
+            <div><strong>Prix convenu :</strong> ${client.price ? fmt(client.price) + ' DA' : '—'}</div>
+            <div><strong>Total versé :</strong> ${fmt((Number(client.apport)||0)+paid)} DA</div>
+            <div><strong>Emplacement :</strong> ${entry.type==='parking' ? entry.etage : ('Étage ' + entry.etage)}</div>
           </div>
         </div>
       `;
     })
     .join('');
   list.innerHTML = cards;
+  list.querySelectorAll('[data-histdel]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const key = e.currentTarget.dataset.histdel;
+      if(!confirm('Supprimer définitivement ce client de l\'historique ? Cette action est irréversible.')) return;
+      historyClients = historyClients.filter(en => (en.id+'__'+en.removedAt) !== key);
+      persist();
+      renderHistoryPanel();
+      toast('Client supprimé de l\'historique');
+    });
+  });
 }
 
-/* ---------------- Add custom unit ---------------- */
+/* ---------------- Add custom apartment ---------------- */
 document.getElementById('btnAddUnit').addEventListener('click', ()=>{
   const floor = parseInt(document.getElementById('addFloor').value);
   const letter = document.getElementById('addLetter').value;
@@ -999,7 +1266,7 @@ document.getElementById('btnAddUnit').addEventListener('click', ()=>{
 
 /* ---------------- Export / Import ---------------- */
 document.getElementById('btnExport').addEventListener('click', ()=>{
-  const data = { store, customUnits, historyClients };
+  const data = { store, customUnits, parkingUnits, historyClients };
   const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -1016,14 +1283,399 @@ document.getElementById('importFile').addEventListener('change', e=>{
       const data = JSON.parse(reader.result);
       store = data.store || {};
       customUnits = data.customUnits || [];
+      parkingUnits = data.parkingUnits || [];
       historyClients = data.historyClients || [];
       persist();
       recomputeAllFloors(); populateFloorFilter();
       renderGestion(); applyFilters();
+      populateParkingFilters(); renderParkingGestion(); applyParkingFilters();
       toast('Sauvegarde importée');
     }catch(err){ toast('Fichier invalide'); }
   };
   reader.readAsText(file);
+});
+
+/* ---------------- MODAL : fiche client 3 étapes ---------------- */
+function entityLabel(entity){
+  return entity.type==='parking' ? ('Parking ' + entity.numero) : (entity.typo + ' — ' + entity.letter + ', étage ' + entity.floor);
+}
+
+function openClientPanel(entity){
+  currentEntity = entity;
+  if(!store[entity.id]) store[entity.id] = { status:'disponible' };
+  const status = store[entity.id].status || 'disponible';
+  document.getElementById('cpEyebrow').textContent = entityLabel(entity);
+  document.getElementById('cpTitle').textContent = 'Dossier client — ' + statusLabel(status);
+
+  fillInfoStep(entity);
+  fillConfirmStep(entity);
+  renderPaiementStep(entity);
+
+  updateStepperLocks(entity);
+  const initialStep = {disponible:'info', reserve:'confirm', confirme:'paiement', vendu:'paiement'}[status];
+  goToStep(initialStep);
+
+  document.getElementById('clientOverlay').classList.add('show');
+}
+
+function closeClientPanel(){
+  document.getElementById('clientOverlay').classList.remove('show');
+  currentEntity = null;
+}
+
+function updateStepperLocks(entity){
+  const status = (store[entity.id]||{}).status || 'disponible';
+  const idx = statusIdx(status);
+  document.querySelectorAll('.step-btn').forEach(btn=>{
+    const step = btn.dataset.step;
+    let unlocked = true;
+    if(step==='confirm') unlocked = idx>=1;
+    if(step==='paiement') unlocked = idx>=2;
+    btn.disabled = !unlocked;
+  });
+}
+
+function goToStep(step){
+  document.querySelectorAll('.step-btn').forEach(b=> b.classList.toggle('active', b.dataset.step===step));
+  document.querySelectorAll('.step-view').forEach(v=> v.classList.remove('show'));
+  const map = {info:'stepInfo', confirm:'stepConfirm', paiement:'stepPaiement'};
+  document.getElementById(map[step]).classList.add('show');
+}
+
+document.querySelectorAll('.step-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    if(btn.disabled || !currentEntity) return;
+    goToStep(btn.dataset.step);
+  });
+});
+
+/* --- Step 1 : Info --- */
+function fillInfoStep(entity){
+  const rec = store[entity.id] || {};
+  const client = rec.client || {};
+  document.getElementById('ciName').value = client.name || '';
+  document.getElementById('ciFirstName').value = client.firstName || '';
+  document.getElementById('ciPhone').value = client.phone || '';
+  document.getElementById('ciBudget').value = client.budget || '';
+  document.getElementById('ciLocation').value = entity.type==='parking' ? (entity.niveau||'—') : ('Étage ' + entity.floor);
+  document.getElementById('ciUnit').value = entity.type==='parking' ? entity.numero : entity.letter;
+  document.getElementById('ciTypo').value = entity.type==='parking' ? 'Parking' : entity.typo;
+  document.getElementById('ciSurface').value = entity.type==='parking' ? '—' : (entity.surface || '—');
+}
+
+document.getElementById('btnSaveInfo').addEventListener('click', ()=>{
+  if(!currentEntity) return;
+  const entity = currentEntity;
+  if(!store[entity.id]) store[entity.id] = {};
+  const client = store[entity.id].client || {};
+  client.name = val('ciName').trim();
+  client.firstName = val('ciFirstName').trim();
+  client.phone = val('ciPhone').trim();
+  client.budget = val('ciBudget');
+  if(!client.reservedAt) client.reservedAt = new Date().toISOString();
+  store[entity.id].client = client;
+  if(statusIdx(store[entity.id].status||'disponible') < 1) store[entity.id].status = 'reserve';
+  persist();
+  toast('Réservation enregistrée');
+  refreshAfterSave(entity);
+  updateStepperLocks(entity);
+  fillConfirmStep(entity);
+  goToStep('confirm');
+});
+
+/* --- Step 2 : Confirmation --- */
+function fillConfirmStep(entity){
+  const rec = store[entity.id] || {};
+  const client = rec.client || {};
+  const price = client.price ?? entity.price ?? '';
+  document.getElementById('cfPrice').value = price;
+  document.getElementById('cfChequeNum').value = client.chequeNum || '';
+  document.getElementById('cfChequeDate').value = client.chequeDate || '';
+  document.getElementById('cfConfirmCheck').checked = !!client.apportConfirmed;
+  updateApportCalc(entity);
+}
+function updateApportCalc(entity){
+  const price = parseFloat(val('cfPrice')) || 0;
+  const rate = rateFor(entity);
+  document.getElementById('cfApportCalc').value = price ? (fmt(Math.round(price*rate)) + ' DA (' + Math.round(rate*100) + '%)') : '—';
+}
+document.getElementById('cfPrice').addEventListener('input', ()=>{ if(currentEntity) updateApportCalc(currentEntity); });
+
+document.getElementById('btnBackToInfo').addEventListener('click', ()=> goToStep('info'));
+
+document.getElementById('btnConfirmApport').addEventListener('click', ()=>{
+  if(!currentEntity) return;
+  const entity = currentEntity;
+  const price = parseFloat(val('cfPrice')) || 0;
+  if(price<=0){ toast('Indiquez un prix valide'); return; }
+  if(!document.getElementById('cfConfirmCheck').checked){ toast('Cochez la confirmation du versement pour continuer'); return; }
+  const rate = rateFor(entity);
+  const apport = Math.round(price*rate);
+  const client = store[entity.id].client || {};
+  client.price = price;
+  client.apport = apport;
+  client.apportConfirmed = true;
+  client.chequeNum = val('cfChequeNum').trim();
+  client.chequeDate = val('cfChequeDate');
+  client.confirmedAt = new Date().toISOString();
+  client.tranches = client.tranches || [];
+  store[entity.id].client = client;
+  store[entity.id].price = price;
+  store[entity.id].status = 'confirme';
+  persist();
+  toast('Apport initial confirmé');
+  refreshAfterSave(entity);
+  updateStepperLocks(entity);
+  renderPaiementStep(entity);
+  goToStep('paiement');
+});
+
+/* --- Step 3 : Paiement --- */
+function computeReste(client){
+  const paid = (client.tranches||[]).reduce((s,t)=>s+Number(t.amount||0),0);
+  return (Number(client.price)||0) - (Number(client.apport)||0) - paid;
+}
+
+function renderPaiementStep(entity){
+  const rec = store[entity.id] || {};
+  const client = rec.client || {};
+  const reste = computeReste(client);
+  document.getElementById('pSumPrice').textContent = client.price ? fmt(client.price)+' DA' : '—';
+  document.getElementById('pSumApport').textContent = client.apport ? fmt(client.apport)+' DA' : '—';
+  document.getElementById('pSumReste').textContent = fmt(Math.max(reste,0))+' DA';
+  document.getElementById('notaryBanner').style.display = reste<=0 && client.price ? 'block' : 'none';
+
+  const list = document.getElementById('trancheList');
+  const tranches = client.tranches || [];
+  if(tranches.length===0){
+    list.innerHTML = '<div class="hint" style="margin:0;">Aucun versement enregistré pour le moment.</div>';
+  } else {
+    list.innerHTML = tranches.map(t=>`
+      <div class="tranche-row">
+        <span class="tr-label">${t.label}</span>
+        <span class="tr-date">${t.date || ''}</span>
+        <span class="tr-amount">${fmt(t.amount)} DA</span>
+        <button class="tr-del" data-trdel="${t.id}">✕</button>
+      </div>
+    `).join('');
+    list.querySelectorAll('[data-trdel]').forEach(btn=>{
+      btn.addEventListener('click', e=>{
+        const trId = Number(e.currentTarget.dataset.trdel);
+        const c = store[entity.id].client;
+        c.tranches = (c.tranches||[]).filter(t=>t.id!==trId);
+        updateStatusFromReste(entity);
+        persist();
+        renderPaiementStep(entity);
+        refreshAfterSave(entity);
+        updateStepperLocks(entity);
+      });
+    });
+  }
+}
+
+function updateStatusFromReste(entity){
+  const client = store[entity.id].client;
+  const reste = computeReste(client);
+  if(statusIdx(store[entity.id].status) >= 2){
+    store[entity.id].status = reste<=0 ? 'vendu' : 'confirme';
+    if(reste<=0 && !client.soldAt) client.soldAt = new Date().toISOString();
+  }
+  document.getElementById('cpTitle').textContent = 'Dossier client — ' + statusLabel(store[entity.id].status);
+}
+
+document.getElementById('btnAddTranche').addEventListener('click', ()=>{
+  if(!currentEntity) return;
+  const entity = currentEntity;
+  const amount = parseFloat(val('trAmount'));
+  if(!amount || amount<=0){ toast('Montant invalide'); return; }
+  const client = store[entity.id].client;
+  client.tranches = client.tranches || [];
+  const label = val('trLabel').trim() || ('Versement ' + (client.tranches.length + 1));
+  client.tranches.push({ id: Date.now(), label, amount, date: val('trDate') });
+  updateStatusFromReste(entity);
+  persist();
+  document.getElementById('trLabel').value=''; document.getElementById('trAmount').value=''; document.getElementById('trDate').value='';
+  renderPaiementStep(entity);
+  refreshAfterSave(entity);
+  updateStepperLocks(entity);
+  toast('Versement ajouté');
+});
+
+/* --- Annulation --- */
+document.getElementById('btnCancelSale').addEventListener('click', ()=>{
+  if(!currentEntity) return;
+  const entity = currentEntity;
+  if(!confirm('Annuler cette réservation/vente et remettre l\'unité en disponible ? Le client sera archivé dans l\'historique.')) return;
+  const rec = store[entity.id] || {};
+  const prevStatus = rec.status || 'disponible';
+  archiveIfLeavingClient(entity.id, prevStatus, 'disponible', entity);
+  if(!store[entity.id]) store[entity.id] = {};
+  store[entity.id].status = 'disponible';
+  persist();
+  closeClientPanel();
+  refreshAfterSave(entity);
+  toast('Réservation annulée, unité de nouveau disponible');
+});
+
+document.getElementById('btnCloseClient').addEventListener('click', closeClientPanel);
+document.getElementById('clientOverlay').addEventListener('click', e=>{ if(e.target.id==='clientOverlay') closeClientPanel(); });
+
+function refreshAfterSave(entity){
+  if(entity.type==='parking'){
+    populateParkingFilters();
+    applyParkingFilters();
+    renderParkingGestion();
+  } else {
+    applyFilters();
+    renderGestion();
+  }
+  renderHistoryPanel();
+  applyClientsFilter();
+}
+
+/* --- Impression / PDF --- */
+function getClientPrintData(entity){
+  const rec = store[entity.id] || {};
+  const client = rec.client || {};
+  return {
+    promotion: 'BKBI — Promotion Résidentielle',
+    date: new Date().toLocaleDateString('fr-FR'),
+    unite: entityLabel(entity),
+    id: entity.id,
+    nom: client.name||'', prenom: client.firstName||'', telephone: client.phone||'', budget: client.budget||'',
+    prix: client.price||'', apport: client.apport||'', chequeNum: client.chequeNum||'', chequeDate: client.chequeDate||'',
+    tranches: client.tranches||[],
+    reste: Math.max(computeReste(client),0),
+    statut: statusLabel(rec.status||'disponible')
+  };
+}
+
+function renderClientPrintHtml(data){
+  const trancheRows = data.tranches.length
+    ? data.tranches.map(t=>`<div class="field"><span class="label">${t.label} ${t.date?('('+t.date+')'):''}</span><span class="value">${fmt(t.amount)} DA</span></div>`).join('')
+    : '<div class="field"><span class="value">Aucun versement enregistré</span></div>';
+  return `
+    <html><head><title>Fiche client BKBI</title>
+    <style>
+      body{font-family:Arial,sans-serif;margin:0;padding:32px;color:#1F2937;background:#F8FAFC;}
+      .page{background:#fff;padding:30px;border-radius:14px;box-shadow:0 20px 60px rgba(15,23,42,.1);max-width:780px;margin:auto;}
+      h1{font-size:24px;margin-bottom:8px;letter-spacing:.05em;color:#111827;text-transform:uppercase;}
+      .subtitle{font-size:13px;color:#4B5563;margin-bottom:24px;}
+      .section{display:grid;grid-template-columns:repeat(2,minmax(180px,1fr));gap:18px;margin-bottom:24px;}
+      .block{padding:18px;border:1px solid #E5E7EB;border-radius:14px;background:#F9FAFB;}
+      .block h2{font-size:12px;margin:0 0 10px;color:#6B7280;text-transform:uppercase;letter-spacing:.08em;}
+      .field{margin-bottom:10px;display:flex;justify-content:space-between;gap:12px;}
+      .label{font-size:12px;color:#6B7280;}
+      .value{font-size:14px;color:#111827;font-weight:600;}
+      .footer{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#6B7280;border-top:1px solid #E5E7EB;padding-top:18px;margin-top:18px;}
+    </style>
+    </head><body><div class="page">
+      <h1>Fiche client</h1>
+      <div class="subtitle">${data.promotion} · ${data.date} · Statut : ${data.statut}</div>
+      <div class="section">
+        <div class="block">
+          <h2>Informations client</h2>
+          <div class="field"><span class="label">Nom</span><span class="value">${data.nom}</span></div>
+          <div class="field"><span class="label">Prénom</span><span class="value">${data.prenom}</span></div>
+          <div class="field"><span class="label">Téléphone</span><span class="value">${data.telephone}</span></div>
+          <div class="field"><span class="label">Budget</span><span class="value">${data.budget ? data.budget + ' DA' : '—'}</span></div>
+        </div>
+        <div class="block">
+          <h2>Unité</h2>
+          <div class="field"><span class="label">Référence</span><span class="value">${data.unite}</span></div>
+          <div class="field"><span class="label">Prix</span><span class="value">${data.prix ? fmt(data.prix) + ' DA' : '—'}</span></div>
+          <div class="field"><span class="label">Apport initial</span><span class="value">${data.apport ? fmt(data.apport) + ' DA' : '—'}</span></div>
+          <div class="field"><span class="label">Chèque N°</span><span class="value">${data.chequeNum || '—'} ${data.chequeDate?('· '+data.chequeDate):''}</span></div>
+        </div>
+      </div>
+      <div class="block" style="margin-bottom:18px;">
+        <h2>Versements (tranches)</h2>
+        ${trancheRows}
+      </div>
+      <div class="block">
+        <h2>Solde</h2>
+        <div class="field"><span class="label">Reste à payer</span><span class="value">${fmt(data.reste)} DA</span></div>
+      </div>
+      <div class="footer"><span>BKBI — Fiche client</span><span>Référence : ${data.id}</span></div>
+    </div></body></html>`;
+}
+
+document.getElementById('btnPrintClient').addEventListener('click', ()=>{
+  if(!currentEntity) return;
+  const data = getClientPrintData(currentEntity);
+  const printWindow = window.open('', '_blank');
+  if(!printWindow){ toast('Impossible d’ouvrir la fenêtre d’impression'); return; }
+  printWindow.document.write(renderClientPrintHtml(data));
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+});
+
+document.getElementById('btnDownloadClient').addEventListener('click', ()=>{
+  if(!currentEntity) return;
+  const data = getClientPrintData(currentEntity);
+  try{
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:'pt', format:'a4' });
+    const margin = 40;
+    let y = 60;
+    doc.setFont('Helvetica', 'bold'); doc.setFontSize(20);
+    doc.text('Fiche client BKBI', margin, y);
+    doc.setFont('Helvetica', 'normal'); doc.setFontSize(10);
+    doc.text(`Statut : ${data.statut}`, margin, y + 24);
+    doc.text(`Date : ${data.date}`, 520, y + 24, { align: 'right' });
+
+    y += 50;
+    const sections = [
+      { title: 'Informations client', items: [
+        ['Nom', data.nom], ['Prénom', data.prenom], ['Téléphone', data.telephone], ['Budget', data.budget ? data.budget + ' DA' : '—']
+      ]},
+      { title: 'Unité', items: [
+        ['Référence', data.unite], ['Prix', data.prix ? fmt(data.prix) + ' DA' : '—'], ['Apport initial', data.apport ? fmt(data.apport) + ' DA' : '—']
+      ]},
+    ];
+    sections.forEach(section=>{
+      doc.setFillColor(245, 247, 250);
+      doc.rect(margin, y - 8, 520, 24, 'F');
+      doc.setFont('Helvetica', 'bold'); doc.setFontSize(12);
+      doc.text(section.title, margin + 6, y + 10);
+      y += 30;
+      doc.setFont('Helvetica', 'normal'); doc.setFontSize(11);
+      section.items.forEach(([label, value])=>{
+        doc.text(`${label}:`, margin + 6, y);
+        doc.text(String(value), margin + 160, y);
+        y += 18;
+      });
+      y += 12;
+    });
+
+    doc.setFillColor(245, 247, 250);
+    doc.rect(margin, y - 8, 520, 24, 'F');
+    doc.setFont('Helvetica', 'bold'); doc.setFontSize(12);
+    doc.text('Versements (tranches)', margin + 6, y + 10);
+    y += 30;
+    doc.setFont('Helvetica', 'normal'); doc.setFontSize(11);
+    if(data.tranches.length===0){
+      doc.text('Aucun versement enregistré', margin + 6, y); y += 18;
+    } else {
+      data.tranches.forEach(t=>{
+        doc.text(`${t.label} ${t.date?('('+t.date+')'):''}`, margin + 6, y);
+        doc.text(`${fmt(t.amount)} DA`, margin + 400, y);
+        y += 18;
+      });
+    }
+    y += 8;
+    doc.setDrawColor(226,232,240); doc.line(margin, y, 560, y); y += 18;
+    doc.setFont('Helvetica','bold'); doc.setFontSize(12);
+    doc.text(`Reste à payer : ${fmt(data.reste)} DA`, margin, y);
+    y += 22;
+    doc.setFont('Helvetica','normal'); doc.setFontSize(10);
+    doc.text(`Référence BKBI : ${data.id}`, margin, y);
+    doc.save(`fiche_client_${data.id}.pdf`);
+  }catch(err){
+    console.error(err);
+    toast('Impossible de générer le PDF');
+  }
 });
 
 /* ---------------- Tabs ---------------- */
@@ -1031,23 +1683,17 @@ function switchTab(name){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
   document.getElementById('tab-recherche').style.display = name==='recherche' ? '' : 'none';
   document.getElementById('tab-gestion').style.display = name==='gestion' ? '' : 'none';
+  document.getElementById('tab-parkings').style.display = name==='parkings' ? '' : 'none';
+  document.getElementById('tab-clients').style.display = name==='clients' ? '' : 'none';
+  document.getElementById('tab-historique').style.display = name==='historique' ? '' : 'none';
   if(name==='gestion') renderGestion();
+  if(name==='parkings'){ populateParkingFilters(); renderParkingGestion(); applyParkingFilters(); }
+  if(name==='clients') applyClientsFilter();
+  if(name==='historique') renderHistoryPanel();
 }
 document.querySelectorAll('.tab-btn').forEach(b=> b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
-document.getElementById('btnSaveClient').addEventListener('click', saveClientPanel);
-document.getElementById('btnCloseClient').addEventListener('click', closeClientPanel);
-document.getElementById('btnPrintClient').addEventListener('click', printClientPanel);
-document.getElementById('btnDownloadClient').addEventListener('click', downloadClientPanel);
-document.getElementById('btnShowHistory').addEventListener('click', ()=>{
-  document.getElementById('historyPanel').style.display = 'block';
-  renderHistoryPanel();
-  document.getElementById('historyPanel').scrollIntoView({behavior:'smooth', block:'start'});
-});
-document.getElementById('btnCloseHistory').addEventListener('click', ()=>{
-  document.getElementById('historyPanel').style.display = 'none';
-});
 
-/* ---------------- Wire filters ---------------- */
+/* ---------------- Wire filters (appartements) ---------------- */
 document.getElementById('btnFilter').addEventListener('click', applyFilters);
 document.getElementById('btnReset').addEventListener('click', resetFilters);
 ['fFloor','fSide','fTypo','fStatus'].forEach(id=>document.getElementById(id).addEventListener('change', applyFilters));
